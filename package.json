@@ -1,0 +1,27 @@
+{
+  "name": "match-app",
+  "version": "1.0.0",
+  "description": "Monorepo for frontend and backend",
+  "main": "index.js",
+  "scripts": {
+    "start:backend": "cd backend && npm install && npm run dev",
+    "start:frontend": "cd frontend && npm install && npm run dev",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/A-Shabbirr/Match.App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/A-Shabbirr/Match.App/issues"
+  },
+  "homepage": "https://github.com/A-Shabbirr/Match.App#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
