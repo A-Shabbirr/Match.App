@@ -1,0 +1,240 @@
+.page {
+    padding: 2rem;
+    font-family: 'Arial', sans-serif;
+    background-color: #f2f2f2;
+    color: #111;
+}
+
+.h1,
+.h2,
+.h3 {
+    color: #1d1d1d;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.input,
+.select {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.button {
+    padding: 0.6rem 1rem;
+    background-color: #ff0000;
+    color: white;
+    font-weight: bold;
+    border: none;
+    font-size: 18px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+    height: 50px;
+}
+
+.button:hover {
+    background-color: #e60000;
+}
+
+.tournamentCard {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.tournamentCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.MatchCard {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.MatchCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.matchCard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid #ddd;
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 0.6rem;
+    background-color: #fff;
+}
+
+.player {
+    font-weight: bold;
+    color: #111;
+}
+
+.score {
+    color: #555;
+}
+
+.round,
+.status,
+.winner {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.selectedEvent {
+    margin-top: 2rem;
+    padding: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.listItem {
+    margin-bottom: 0.4rem;
+}
+
+.MatchCard_F {
+    padding: 10px;
+    gap: 10px;
+    border: 1px solid silver;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 20%;
+    border-radius: 10px;
+    height: 200px;
+}
+
+.MatchCard_S {
+    padding: 10px;
+    gap: 10px;
+    border: 1px solid silver;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 10px;
+    min-width: 20%;
+    height: 200px;
+}
+
+.MatchCard_T {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 55%;
+    padding: 10px;
+    gap: 10px;
+    border: 1px solid silver;
+    border-radius: 10px;
+    height: 200px;
+}
+
+.MatchCard_T_child {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    gap: 10px;
+    border-radius: 10px;
+    height: 120px;
+}
+
+.MatchCard_T_C {
+    /* height: 100%; */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.check {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+}
+
+.vd_l {
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+    padding: 10px;
+}
+
+.vd_l:hover {
+    color: white;
+    background-color: rgb(228, 6, 172);
+}
+
+.vd {
+    width: 100%;
+}
+
+.vd:hover {
+    color: #ff0000;
+}
+
+/* In your CSS module */
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    /* 5 columns */
+    gap: 10px;
+    /* space between items */
+}
+
+.check {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

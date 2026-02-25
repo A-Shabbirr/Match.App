@@ -1,0 +1,221 @@
+.page {
+    min-height: 100vh;
+    background: #f5f7fa;
+    padding: 24px;
+}
+
+/* ===== HERO ===== */
+.hero {
+    background: linear-gradient(135deg, #37003c, #240027);
+    color: white;
+    /* intended to make text white */
+    padding: 32px;
+    border-radius: 12px;
+    margin-bottom: 32px;
+}
+
+.heroTitle {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.hero .heroTitle {
+    color: white;
+    /* tries to force white */
+}
+
+.heroSubtitle {
+    margin-top: 8px;
+}
+
+/* ===== SECTION ===== */
+.section {
+    margin-bottom: 40px;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.sectionTitle {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* ===== GRID ===== */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+/* ===== CARD ===== */
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.cardTitle {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.cardMeta {
+    font-size: 14px;
+    color: #666;
+}
+
+/* ===== BADGES ===== */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 999px;
+    margin-top: 10px;
+}
+
+.badgeUpcoming {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.badgeLive {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.badgeCompleted {
+    background: #f3e5f5;
+    color: #6a1b9a;
+}
+
+/* ===== LINKS ===== */
+.link {
+    color: #37003c;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* ===== SEARCH ===== */
+.searchBox {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.searchInput {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.searchInput:focus {
+    border-color: #37003c;
+}
+
+.page {
+    padding: 20px 40px;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: #f7f7f7;
+    min-height: 100vh;
+}
+
+/* HERO */
+.hero {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.heroTitle {
+    font-size: 28px;
+    color: #37003c;
+    margin-bottom: 6px;
+}
+
+.heroSubtitle {
+    font-size: 16px;
+    color: #555;
+}
+
+/* SEARCH */
+.searchBox {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.searchInput {
+    width: 300px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* SECTIONS */
+.section {
+    margin-bottom: 40px;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.sectionTitle {
+    font-size: 22px;
+    color: #37003c;
+}
+
+.link {
+    font-size: 14px;
+    color: #2196f3;
+    text-decoration: underline;
+}
+
+/* GRID */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 20px;
+}
+
+.viewAllButton {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #37003c;
+    /* Premier League purple */
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.viewAllButton:hover {
+    background-color: #5c005d;
+    transform: translateY(-2px);
+}
