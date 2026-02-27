@@ -1,18 +1,11 @@
 'use client';
 
-import { db } from '@/app/auth/firebase';
-import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    onSnapshot,
-    updateDoc
-} from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from '../[tournamentId]/tournament.module.css';
 import Spinner from '@/app/components/Spinner';
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 const SchedulePage = () => {
     const { tournamentId } = useParams();
@@ -20,7 +13,6 @@ const SchedulePage = () => {
     const [tournament, setTournament] = useState(null);
     const [matches, setMatches] = useState([]);
     const [playerMap, setPlayerMap] = useState({});
-
     const [editMatchID, setEditMatchID] = useState(null);
     const [editData, setEditData] = useState({
         scoreA: 0,
@@ -28,52 +20,87 @@ const SchedulePage = () => {
         status: 'Upcoming',
         winner: ''
     });
+    const [token, setToken] = useState(null);
+
+    // Get token safely
+    useEffect(() => {
+        const storedToken = localStorage.getItem("token");
+        if (storedToken) {
+            setToken(storedToken);
+        }
+    }, []);
 
     // Fetch tournament
     useEffect(() => {
+        if (!token || !tournamentId) return;
+
         const fetchTournament = async () => {
-            const ref = doc(db, 'tournaments', tournamentId);
-            const snap = await getDoc(ref);
-            if (snap.exists()) {
-                setTournament({ id: snap.id, ...snap.data() });
+            try {
+                const res = await fetch(`${API}/tournaments/${tournamentId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+                setTournament(data);
+            } catch (err) {
+                console.error("Error fetching tournament:", err);
             }
         };
+
         fetchTournament();
-    }, [tournamentId]);
+    }, [token, tournamentId]);
 
     // Fetch users
     useEffect(() => {
+        if (!token) return;
+
         const fetchUsers = async () => {
-            const snap = await getDocs(collection(db, 'users'));
-            const map = {};
-            snap.docs.forEach(doc => {
-                map[doc.id] = doc.data().header;
-            });
-            setPlayerMap(map);
-            console.log('this is map:', map);
+            try {
+                const res = await fetch(`${API}/users`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
+                const users = await res.json();
+                const map = {};
+
+                users.forEach(user => {
+                    map[user._id] = user.header;
+                });
+
+                setPlayerMap(map);
+            } catch (err) {
+                console.error("Error fetching users:", err);
+            }
         };
+
         fetchUsers();
-    }, []);
+    }, [token]);
 
-    // Listen to matches
+    // Fetch matches
     useEffect(() => {
-        const matchesRef = collection(db, 'tournaments', tournamentId, 'matches');
-        const unsubscribe = onSnapshot(matchesRef, snapshot => {
-            const data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setMatches(data);
-            console.log('Matches Data:', data);
+        if (!token || !tournamentId) return;
 
-        });
+        const fetchMatches = async () => {
+            try {
+                const res = await fetch(
+                    `${API}/tournaments/${tournamentId}/matches`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
 
-        return () => unsubscribe();
-    }, [tournamentId]);
+                const data = await res.json();
+                setMatches(data);
+            } catch (err) {
+                console.error("Error fetching matches:", err);
+            }
+        };
+
+        fetchMatches();
+    }, [token, tournamentId]);
 
     const edit = (match) => {
-        setEditMatchID(match.id);
+        setEditMatchID(match._id);
         setEditData({
             scoreA: match.scoreA,
             scoreB: match.scoreB,
@@ -83,16 +110,40 @@ const SchedulePage = () => {
     };
 
     const save = async (matchId) => {
-        const ref = doc(db, 'tournaments', tournamentId, 'matches', matchId);
+        try {
+            await fetch(
+                `${API}/tournaments/${tournamentId}/matches/${matchId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        scoreA: Number(editData.scoreA),
+                        scoreB: Number(editData.scoreB),
+                        status: editData.status,
+                        winner: editData.winner || ''
+                    })
+                }
+            );
 
-        await updateDoc(ref, {
-            scoreA: Number(editData.scoreA),
-            scoreB: Number(editData.scoreB),
-            status: editData.status, // ✅ fixed typo
-            winner: editData.winner || ''
-        });
+            setEditMatchID(null);
 
-        setEditMatchID(null);
+            // Refresh matches after update
+            const res = await fetch(
+                `${API}/tournaments/${tournamentId}/matches`,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            const data = await res.json();
+            setMatches(data);
+
+        } catch (err) {
+            console.error("Error updating match:", err);
+        }
     };
 
     const calculateStandings = () => {
@@ -114,8 +165,8 @@ const SchedulePage = () => {
         matches.forEach(match => {
             if (match.status !== 'Completed') return;
 
-            const playerAId = match.playerA.uid;
-            const playerBId = match.playerB.uid;
+            const playerAId = match.playerA._id;
+            const playerBId = match.playerB._id;
 
             if (!table[playerAId] || !table[playerBId]) return;
 
@@ -141,7 +192,6 @@ const SchedulePage = () => {
             }
         });
 
-
         return Object.values(table).sort(
             (a, b) => b.points - a.points || b.wins - a.wins
         );
@@ -159,9 +209,10 @@ const SchedulePage = () => {
 
                     <div className={styles.matchCard_parent}>
                         {matches.map(match => {
-                            const isEditing = editMatchID === match.id;
+                            const isEditing = editMatchID === match._id;
+
                             return (
-                                <div key={match.id} className={styles.matchCard}>
+                                <div key={match._id} className={styles.matchCard}>
                                     <p className={styles.matchPlayers}>
                                         <strong>{match.playerA.header}</strong> vs{' '}
                                         <strong>{match.playerB.header}</strong>
@@ -203,15 +254,15 @@ const SchedulePage = () => {
                                                 }
                                             >
                                                 <option value="">No winner</option>
-                                                <option value={match.playerA.uid}>
+                                                <option value={match.playerA._id}>
                                                     {match.playerA.header}
                                                 </option>
-                                                <option value={match.playerB.uid}>
+                                                <option value={match.playerB._id}>
                                                     {match.playerB.header}
                                                 </option>
                                             </select>
 
-                                            <button onClick={() => save(match.id)}>Save</button>
+                                            <button onClick={() => save(match._id)}>Save</button>
                                             <button onClick={() => setEditMatchID(null)}>Cancel</button>
                                         </>
                                     ) : (
@@ -220,7 +271,9 @@ const SchedulePage = () => {
                                             <p>Status: {match.status}</p>
                                             <p>
                                                 Winner:{' '}
-                                                {match.winner ? playerMap[match.winner] : 'TBD'}
+                                                {match.winner
+                                                    ? playerMap[match.winner]
+                                                    : 'TBD'}
                                             </p>
 
                                             <button
@@ -236,15 +289,13 @@ const SchedulePage = () => {
                                             >
                                                 Edit
                                             </button>
-
                                         </>
                                     )}
-
                                 </div>
                             );
                         })}
                     </div>
-                    {/* STANDINGS */}
+
                     <div className={styles.standingsCard}>
                         <h2 className={styles.standingsTitle}>Standings</h2>
 
@@ -262,7 +313,9 @@ const SchedulePage = () => {
                             <tbody>
                                 {calculateStandings().map((row, index) => (
                                     <tr key={row.playerId}>
-                                        <td className={styles.points}> {index + 1}. {playerMap[row.playerId]}</td>
+                                        <td className={styles.points}>
+                                            {index + 1}. {playerMap[row.playerId]}
+                                        </td>
                                         <td className={styles.points}>{row.played}</td>
                                         <td className={styles.points}>{row.wins}</td>
                                         <td className={styles.points}>{row.draws}</td>

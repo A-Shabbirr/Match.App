@@ -1,21 +1,31 @@
-# dependencies
+# Root node_modules
 node_modules/
 
-# next.js
+# Frontend
+frontend/node_modules/
 frontend/.next/
-
-# builds
-backend/build/
+frontend/out/
 frontend/build/
-dist/
-
-# env files
-backend/.env
 frontend/.env
-.env
-.env.local
-.env.development.local
-.env.production.local
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
 
-# logs
+# Backend
+backend/node_modules/
+backend/build/
+backend/.env
+
+# Logs
 npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Misc
+.env
+.env.*

@@ -4,11 +4,11 @@ const UserCard = ({ user }) => {
     return (
         <div className={styles.card}>
             <h3 className={styles.cardTitle}>
-                {user.header || 'Unnamed User'}
+                {user.header || user.name || 'Unnamed User'}
             </h3>
 
             <p className={styles.cardMeta}>
-                {/* UID: {user.id.slice(0, 8)}… */}
+                UID: {user._id ? user._id.slice(0, 8) + '…' : 'N/A'}
             </p>
         </div>
     );

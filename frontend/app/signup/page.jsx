@@ -1,57 +1,49 @@
-'use client'
+'use client';
 import React, { useState } from "react";
 import styles from "./signup.module.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const page = () => {
-
-    const [email, setemail] = useState('');
-    const [password, setpassword] = useState('');
-    const [Name, setName] = useState('');
+    const [name, setName] = useState('');
     const [header, setHeader] = useState('');
-    const [phone, setphone] = useState('');
-    const [loading, setloading] = useState(false);
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const router = useRouter()
+    const router = useRouter();
 
+    const API = process.env.NEXT_PUBLIC_API_URL; // dynamic backend URL
+
+    // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
-
         switch (name) {
-            case 'name':
-                setName(value);
-                break;
-            case 'header':
-                setHeader(value);
-                break;
-            case 'email':
-                setemail(value);
-                break;
-            case 'password':
-                setpassword(value);
-                break;
-            default:
-                break;
+            case 'name': setName(value); break;
+            case 'header': setHeader(value); break;
+            case 'email': setEmail(value); break;
+            case 'password': setPassword(value); break;
+            default: break;
         }
     };
+
     const handlePhoneChange = (e) => {
         const value = e.target.value;
-        if (/^\d*$/.test(value)) {
-            setphone(value);
-        }
+        if (/^\d*$/.test(value)) setPhone(value);
     };
+
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setloading(true)
+        setLoading(true);
+
         try {
-            const response = await fetch("http://localhost:5000/api/auth/register", {
+            const res = await fetch(`${API}/auth/register`, { // dynamic URL
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    name: Name,
+                    name,
                     header,
                     phone,
                     email,
@@ -60,48 +52,50 @@ const page = () => {
                 })
             });
 
-            const data = await response.json();
+            const data = await res.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || "Something went wrong");
-            }
+            if (!res.ok) throw new Error(data.message || "Something went wrong");
 
-            alert("You've registered successfully!");
+            alert("Registration successful! Please login.");
             router.push('/login');
 
         } catch (error) {
             console.error(error);
             alert(error.message);
         } finally {
-            setloading(false);
+            setLoading(false);
         }
     };
+
     return (
         <div className={styles.signup_container}>
             <form className={styles.signup_form} onSubmit={handleSubmit}>
                 <h2>Create Account</h2>
+
                 <label>
                     Name
                     <input
                         type="text"
                         name="name"
-                        placeholder="Name will not be displayed anywhere"
-                        value={Name}
+                        placeholder="Full name (not displayed publicly)"
+                        value={name}
                         onChange={handleChange}
                         required
                     />
                 </label>
+
                 <label>
                     Header
                     <input
                         type="text"
                         name="header"
-                        placeholder="Displayed Everywhere i.e. Capt Jack"
+                        placeholder="Display name e.g. Capt Jack"
                         value={header}
                         onChange={handleChange}
                         required
                     />
                 </label>
+
                 <label>
                     Contact Number
                     <input
@@ -109,10 +103,11 @@ const page = () => {
                         name="phone"
                         value={phone}
                         onChange={handlePhoneChange}
-                        placeholder="Enter numbers only"
+                        placeholder="Numbers only"
                         required
                     />
                 </label>
+
                 <label>
                     Email
                     <input
@@ -123,6 +118,7 @@ const page = () => {
                         required
                     />
                 </label>
+
                 <label>
                     Password
                     <input
@@ -133,17 +129,15 @@ const page = () => {
                         required
                     />
                 </label>
+
                 <button type="submit" disabled={loading}>
                     {loading ? 'Signing up...' : 'Sign Up'}
                 </button>
+
                 <div className={styles.login}>
-                    <p className={styles.p}>
-                        Already have an account
-                    </p>
-                    <Link href='login'>
-                        <p className={styles.pl}>
-                            Login
-                        </p>
+                    <p>Already have an account?</p>
+                    <Link href="/login">
+                        <p className={styles.pl}>Login</p>
                     </Link>
                 </div>
             </form>

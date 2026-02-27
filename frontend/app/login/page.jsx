@@ -1,4 +1,4 @@
-'use client'
+'use client'; 
 import React, { useState } from "react";
 import styles from "./login.module.css";
 import { useRouter } from "next/navigation";
@@ -6,40 +6,44 @@ import { useRouter } from "next/navigation";
 const page = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setloading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setloading(true)
+        setLoading(true);
+
         try {
-            const res = await fetch("http://localhost:5000/api/auth/login", {
+            // Use dynamic API base URL from environment
+            const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+            const res = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
-            })
+            });
+
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.message || "Login failed");
 
+            // Save token and role locally
             localStorage.setItem("token", data.token);
-            localStorage.setItem("id", data._id);
             localStorage.setItem("role", data.role);
+            localStorage.setItem("id", data._id);
 
+            // Redirect based on role
             if (data.role === 'admin') {
                 router.replace('/admin');
-            } else if (data.role === 'user') {
-                router.replace('/dashboard');
             } else {
-                router.replace('/signup'); // fallback
+                router.replace('/dashboard');
             }
-            console.log("login Successful", data);
 
         } catch (error) {
             console.error(error);
             alert(error.message);
         } finally {
-            setloading(false);
+            setLoading(false);
         }
     };
 
@@ -51,7 +55,6 @@ const page = () => {
                     Email
                     <input
                         type="email"
-                        name="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -61,7 +64,6 @@ const page = () => {
                     Password
                     <input
                         type="password"
-                        name="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required

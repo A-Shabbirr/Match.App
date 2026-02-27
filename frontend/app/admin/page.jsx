@@ -8,24 +8,36 @@ import styles from './admin.module.css';
 import UserCard from '../components/Usercard';
 import TournamentCard from '../components/TournamentCard';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 const Page = () => {
     const [users, setUsers] = useState([]);
     const [tournaments, setTournaments] = useState([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const [token, setToken] = useState(null);
 
-    // Fetch users from backend
+    // Get token safely (client-side only)
     useEffect(() => {
-        const fetchUsers = async () => {
-            if (!token) return;
+        const storedToken = localStorage.getItem("token");
+        if (storedToken) {
+            setToken(storedToken);
+        } else {
+            setLoading(false);
+        }
+    }, []);
 
+    // Fetch users
+    useEffect(() => {
+        if (!token) return;
+
+        const fetchUsers = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/users", {
+                const res = await fetch(`${API}/users`, {
                     headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
 
                 if (!res.ok) throw new Error("Failed to fetch users");
@@ -41,16 +53,16 @@ const Page = () => {
         fetchUsers();
     }, [token]);
 
-    // Fetch tournaments from backend
+    // Fetch tournaments
     useEffect(() => {
-        const fetchTournaments = async () => {
-            if (!token) return;
+        if (!token) return;
 
+        const fetchTournaments = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/tournaments", {
+                const res = await fetch(`${API}/tournaments`, {
                     headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
 
                 if (!res.ok) throw new Error("Failed to fetch tournaments");
@@ -129,7 +141,11 @@ const Page = () => {
                 <div className={styles.grid}>
                     {filteredTournaments.length > 0 ? (
                         filteredTournaments.map(t => (
-                            <TournamentCard key={t._id} tournament={t} linkdetail="admin/schedule" />
+                            <TournamentCard
+                                key={t._id}
+                                tournament={t}
+                                linkdetail="admin/schedule"
+                            />
                         ))
                     ) : (
                         <p>No tournaments found.</p>

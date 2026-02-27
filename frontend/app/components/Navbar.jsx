@@ -6,6 +6,8 @@ import Link from 'next/link';
 import styles from '@/app/components/styles/navbar.module.css';
 import { useRouter } from 'next/navigation';
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 const Navbar = () => {
     const [userDetails, setUserDetails] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -13,32 +15,25 @@ const Navbar = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
+            if (typeof window === "undefined") return;
             const token = localStorage.getItem("token");
             const userId = localStorage.getItem("userId");
-            const role = localStorage.getItem("role");
 
-            if (!token || !userId || !role) {
+            if (!token || !userId) {
                 setUserDetails(null);
                 setLoading(false);
                 return;
             }
 
             try {
-                // Optional: fetch full user info from backend
-                const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
+                const res = await fetch(`${API}/users/${userId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-
-                if (!res.ok) throw new Error("Failed to fetch user info");
-
+                if (!res.ok) throw new Error("Failed to fetch user");
                 const data = await res.json();
                 setUserDetails(data);
-                console.log(data);
-
-            } catch (error) {
-                console.error("Error fetching user info:", error);
+            } catch (err) {
+                console.error(err);
                 setUserDetails(null);
             } finally {
                 setLoading(false);
@@ -46,6 +41,12 @@ const Navbar = () => {
         };
 
         fetchUser();
+
+        // Sync user state across tabs
+        const handleStorage = () => fetchUser();
+        window.addEventListener("storage", handleStorage);
+
+        return () => window.removeEventListener("storage", handleStorage);
     }, []);
 
     const handleLogout = () => {
@@ -77,8 +78,9 @@ const Navbar = () => {
             <div className={styles.profileSection}>
                 {userDetails ? (
                     <>
-                        {/* Profile Picture can be added later */}
-                        <span className={styles.username}>{userDetails.header}</span>
+                        <span className={styles.username}>
+                            {userDetails.header || userDetails.name || "User"}
+                        </span>
                         <button onClick={handleLogout} className={styles.logoutBtn}>
                             Logout
                         </button>

@@ -1,10 +1,10 @@
 'use client';
 
-import { db } from '@/app/auth/firebase';
-import { addDoc, collection, getDocs, onSnapshot } from 'firebase/firestore';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import styles from './ct.module.css';
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 const Page = () => {
     const [tournaments, setTournaments] = useState([]);
@@ -12,6 +12,7 @@ const Page = () => {
     const [matches, setMatches] = useState([]);
     const [players, setPlayers] = useState([]);
     const [playerMap, setPlayerMap] = useState({});
+    const [token, setToken] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -21,147 +22,179 @@ const Page = () => {
         selectedPlayers: []
     });
 
+    // Get token
+    useEffect(() => {
+        const storedToken = localStorage.getItem("token");
+        if (storedToken) setToken(storedToken);
+    }, []);
+
     // Fetch tournaments
     useEffect(() => {
-        const unsubscribe = onSnapshot(collection(db, 'tournaments'), (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setTournaments(data);
-        });
-        return () => unsubscribe();
-    }, []);
+        if (!token) return;
+
+        const fetchTournaments = async () => {
+            try {
+                const res = await fetch(`${API}/tournaments`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+                setTournaments(data);
+            } catch (err) {
+                console.error("Error fetching tournaments:", err);
+            }
+        };
+
+        fetchTournaments();
+    }, [token]);
 
     // Fetch users
     useEffect(() => {
+        if (!token) return;
+
         const fetchUsers = async () => {
-            const snap = await getDocs(collection(db, 'users'));
-            const data = snap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
-            setPlayers(data);
+            try {
+                const res = await fetch(`${API}/users`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
-            // Map player IDs to headers
-            const map = {};
-            data.forEach(p => map[p.uid] = p.header);
-            setPlayerMap(map);
-            console.log('Playermap :', map);
+                const data = await res.json();
+                setPlayers(data);
 
-        }
+                const map = {};
+                data.forEach(p => map[p._id] = p.header);
+                setPlayerMap(map);
+
+            } catch (err) {
+                console.error("Error fetching users:", err);
+            }
+        };
+
         fetchUsers();
-    }, []);
-
+    }, [token]);
 
     // Create tournament
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         const { name, type, startDate, endDate, selectedPlayers } = formData;
 
         if (!name || selectedPlayers.length < 2) {
             alert('Add a tournament name and select at least 2 players');
             return;
         }
-        const start = new Date(startDate);
-        const end = new Date(endDate);
 
-        if (end < start) {
-            alert('End date should be after or the same as start date!');
+        if (new Date(endDate) < new Date(startDate)) {
+            alert('End date must be after start date');
             return;
         }
-        const tournamentRef = await addDoc(collection(db, 'tournaments'), {
-            name, type, startDate, endDate, players: selectedPlayers, status: 'Upcoming', winner: ''
-        });
 
-        const tournamentId = tournamentRef.id;
-        const matchesRef = collection(db, 'tournaments', tournamentId, 'matches');
-        if (type === 'round_robin') {
-            for (let i = 0; i < players.length; i++) {
-                for (let j = i + 1; j < players.length; j++) {
-                    await addDoc(matchesRef, {
-                        playerA: players[i],
-                        playerB: players[j],
-                        scoreA: 0,
-                        scoreB: 0,
-                        round: 'Round Robin',
-                        status: 'Upcoming',
-                        winner: ''
-                    });
-                }
-            }
-        } else {
-            // Knockout
-            let round = 1;
-            let current = [...players].sort(() => Math.random() - 0.5);
-            while (current.length > 1) {
-                const nextRound = [];
-                for (let i = 0; i < current.length; i += 2) {
-                    const playerA = current[i];
-                    const playerB = current[i + 1] || null;
-                    await addDoc(matchesRef,
-                        {
-                            playerA,
-                            playerB,
-                            scoreA: 0,
-                            scoreB: 0,
-                            round: `Round ${round}`,
-                            status: 'Upcoming',
-                            winner: ''
-                        });
-                    nextRound.push(playerA);
-                }
-                current = nextRound;
-                round++;
-            }
+        try {
+            const res = await fetch(`${API}/tournaments`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name,
+                    type,
+                    startDate,
+                    endDate,
+                    players: selectedPlayers
+                })
+            });
+
+            const newTournament = await res.json();
+
+            alert("Tournament Created");
+
+            setFormData({
+                name: '',
+                type: 'round_robin',
+                startDate: '',
+                endDate: '',
+                selectedPlayers: []
+            });
+
+            // Refresh tournaments
+            setTournaments(prev => [...prev, newTournament]);
+
+        } catch (err) {
+            console.error("Error creating tournament:", err);
         }
-
-        alert('Tournament Created');
-        setFormData({ name: '', type: 'round_robin', startDate: '', endDate: '', selectedPlayers: [] });
     };
-
 
     // Fetch matches for selected tournament
     useEffect(() => {
-        if (!selectedTournament) return;
-        const unsubscribe = onSnapshot(
-            collection(db, 'tournaments', selectedTournament.id, 'matches'),
-            snapshot => {
-                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (!selectedTournament || !token) return;
+
+        const fetchMatches = async () => {
+            try {
+                const res = await fetch(
+                    `${API}/tournaments/${selectedTournament._id}/matches`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                const data = await res.json();
                 setMatches(data);
+
+            } catch (err) {
+                console.error("Error fetching matches:", err);
             }
-        );
-        return () => unsubscribe();
-    }, [selectedTournament?.id]);
+        };
+
+        fetchMatches();
+    }, [selectedTournament?._id, token]);
 
     return (
         <div className={styles.page}>
             <h1 className={styles.h1}>Admin – Tournaments</h1>
 
+            {/* CREATE FORM */}
             <form className={styles.form} onSubmit={handleSubmit}>
-                <input className={styles.input}
+                <input
+                    className={styles.input}
                     type="text"
                     placeholder="Tournament Name"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                 />
-                <input className={styles.input}
+
+                <input
+                    className={styles.input}
                     type="date"
                     value={formData.startDate}
                     onChange={e => setFormData({ ...formData, startDate: e.target.value })}
                 />
-                <input className={styles.input}
+
+                <input
+                    className={styles.input}
                     type="date"
                     value={formData.endDate}
                     onChange={e => setFormData({ ...formData, endDate: e.target.value })}
                 />
-                <select className={styles.select} value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
-                    <option className={styles.option} value="round_robin">Round Robin</option>
-                    <option className={styles.option} value="knockout">Knockout</option>
+
+                <select
+                    className={styles.select}
+                    value={formData.type}
+                    onChange={e => setFormData({ ...formData, type: e.target.value })}
+                >
+                    <option value="round_robin">Round Robin</option>
+                    <option value="knockout">Knockout</option>
                 </select>
-                <h3 className={styles.h1}>Select Players</h3>
+
+                <h3>Select Players</h3>
+
                 <div className={styles.gridContainer}>
                     {players.map(p => (
-                        <label key={p.uid} className={styles.check}>
+                        <label key={p._id} className={styles.check}>
                             <input
-                                className={styles.input}
                                 type="checkbox"
-                                value={p.uid}
-                                checked={formData.selectedPlayers.includes(p.uid)}
+                                value={p._id}
+                                checked={formData.selectedPlayers.includes(p._id)}
                                 onChange={e => {
                                     const val = e.target.value;
                                     setFormData(prev => ({
@@ -177,39 +210,41 @@ const Page = () => {
                     ))}
                 </div>
 
-                <button className={styles.button} type="submit">Create Tournament</button>
+                <button className={styles.button} type="submit">
+                    Create Tournament
+                </button>
             </form>
 
+            {/* LIST TOURNAMENTS */}
             <h2 className={styles.h2}>All Tournaments</h2>
+
             {tournaments.map(t => (
-                <div key={t.id} className={styles.tournamentWrapper}>
+                <div key={t._id} className={styles.tournamentWrapper}>
 
                     <div
                         className={styles.tournamentCard}
                         onClick={() =>
                             setSelectedTournament(
-                                selectedTournament?.id === t.id ? null : t
+                                selectedTournament?._id === t._id ? null : t
                             )
                         }
                     >
                         <span>{t.name} ({t.type})</span>
-                        <Link
-                            href={`schedule/${t.id}`}>
+
+                        <Link href={`schedule/${t._id}`}>
                             <p className={styles.vd_l}>View Details</p>
                         </Link>
-
                     </div>
 
-                    {selectedTournament?.id === t.id && (
+                    {selectedTournament?._id === t._id && (
                         <div className={styles.MatchCard}>
-                            <div className={styles.MatchCard_F}>
+                            <div>
                                 <h3>{t.name}</h3>
                                 <p>Type: {t.type}</p>
                                 <p>Status: {t.status}</p>
-
                             </div>
 
-                            <div className={styles.MatchCard_S}>
+                            <div>
                                 <h4>Players</h4>
                                 <ul>
                                     {t.players.map(pid => (
@@ -218,34 +253,28 @@ const Page = () => {
                                 </ul>
                             </div>
 
-                            <div className={styles.MatchCard_T}>
+                            <div>
                                 <h4>Matches</h4>
-                                <p className={styles.vd}>Click details above to see all matches , standings and others</p>
-                                <div className={styles.MatchCard_T_child}>
-                                    {matches.length === 0 ? (
-                                        <p>No matches yet</p>
-                                    ) : (
-                                        matches.slice(0, 3).map(m => (
-                                            <div key={m.id} className={styles.matchCard}>
-                                                <h4>
-                                                    {playerMap[m.playerA]} vs {playerMap[m.playerB]}
-                                                </h4>
-                                                <p>Score: {m.scoreA} - {m.scoreB}</p>
-                                                <p>Status: {m.status}</p>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
+                                {matches.length === 0 ? (
+                                    <p>No matches yet</p>
+                                ) : (
+                                    matches.slice(0, 3).map(m => (
+                                        <div key={m._id}>
+                                            <h4>
+                                                {m.playerA.header} vs {m.playerB.header}
+                                            </h4>
+                                            <p>Score: {m.scoreA} - {m.scoreB}</p>
+                                            <p>Status: {m.status}</p>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     )}
                 </div>
             ))}
-
-
-
         </div>
     );
-}
+};
 
 export default Page;
