@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 import React, { useState } from "react";
 import styles from "./login.module.css";
 import { useRouter } from "next/navigation";
@@ -15,14 +15,13 @@ const page = () => {
 
         try {
             // Use dynamic API base URL from environment
-            const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+            const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
             const res = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
             });
-
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.message || "Login failed");
