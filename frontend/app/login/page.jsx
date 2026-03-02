@@ -16,7 +16,6 @@ const page = () => {
         try {
             // Use dynamic API base URL from environment
             const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
             const res = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

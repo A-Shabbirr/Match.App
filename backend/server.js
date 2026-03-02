@@ -18,9 +18,21 @@ if (!process.env.MONGO_URI) {
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(express.json());
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://match-app-j49n.vercel.app"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 
 // Test root route
 app.get("/", (req, res) => {
@@ -36,6 +48,9 @@ app.use("/users", userRoute);
 
 const authRoutes = require("./routes/authRoutes");
 app.use("/auth", authRoutes);
+
+
+app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 // Admin and dashboard routes (optional)
 const adminRoutes = require("./routes/adminRoutes");

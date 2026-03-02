@@ -14,7 +14,7 @@ const page = () => {
 
     const router = useRouter();
 
-    const API = process.env.NEXT_PUBLIC_API_URL; // dynamic backend URL
+    const API = process.env.NEXT_PUBLIC_API_URL;
 
     // Handle input changes
     const handleChange = (e) => {
@@ -39,6 +39,7 @@ const page = () => {
         setLoading(true);
 
         try {
+            console.log("API VALUE:", API);
             const res = await fetch(`${API}/auth/register`, { // dynamic URL
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -50,8 +51,9 @@ const page = () => {
                     password,
                     role: "user"
                 })
-            });
 
+            });
+            console.log("API:", process.env.NEXT_PUBLIC_API_URL);
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.message || "Something went wrong");
