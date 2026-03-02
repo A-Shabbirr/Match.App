@@ -6,17 +6,10 @@ const connectDB = require("./config/db");
 const cors = require("cors");
 const path = require("path");
 
-// Load environment variables at the very top
-dotenv.config({ path: path.resolve(__dirname, ".env") });
-
-// Check if MONGO_URI exists
 if (!process.env.MONGO_URI) {
   console.error("❌ MONGO_URI is not defined in .env file");
   process.exit(1); // stop server
-}
-
-// Connect to MongoDB
-connectDB();
+} connectDB();
 
 const allowedOrigins = [
   "http://localhost:3000",
