@@ -1,16 +1,17 @@
 // server.js
+require("dotenv").config();
 const express = require("express");
 const app = express();
-const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const cors = require("cors");
 const path = require("path");
-
 if (!process.env.MONGO_URI) {
   console.error("❌ MONGO_URI is not defined in .env file");
   process.exit(1); // stop server
-} connectDB();
-
+}
+connectDB();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   "http://localhost:3000",
   "https://match-app-j49n.vercel.app"
