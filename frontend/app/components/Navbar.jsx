@@ -14,10 +14,13 @@ const Navbar = () => {
     const router = useRouter();
 
     useEffect(() => {
+
         const fetchUser = async () => {
             if (typeof window === "undefined") return;
+
             const token = localStorage.getItem("token");
-            const userId = localStorage.getItem("userId");
+            const userId = localStorage.getItem("id");
+            console.log(userId);
 
             if (!token || !userId) {
                 setUserDetails(null);
@@ -27,13 +30,22 @@ const Navbar = () => {
 
             try {
                 const res = await fetch(`${API}/users/${userId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
                 });
-                if (!res.ok) throw new Error("Failed to fetch user");
+
+                if (!res.ok) {
+                    throw new Error("Failed to fetch user");
+                }
+
                 const data = await res.json();
                 setUserDetails(data);
+                console.log("data", data);
+
             } catch (err) {
-                console.error(err);
+                console.error("Error fetching user details:", err);
                 setUserDetails(null);
             } finally {
                 setLoading(false);
@@ -42,7 +54,7 @@ const Navbar = () => {
 
         fetchUser();
 
-        // Sync user state across tabs
+        // Sync across tabs if localStorage changes
         const handleStorage = () => fetchUser();
         window.addEventListener("storage", handleStorage);
 
@@ -78,8 +90,17 @@ const Navbar = () => {
             <div className={styles.profileSection}>
                 {userDetails ? (
                     <>
+                        {userDetails.profilePicture ? (
+                            <Image
+                                src={userDetails.profilePicture}
+                                alt='Profile'
+                                width={35}
+                                height={35}
+                                className={styles.profilePic}
+                            />
+                        ) : null}
                         <span className={styles.username}>
-                            {userDetails.header || userDetails.name || "User"}
+                            {userDetails.header || "User"}
                         </span>
                         <button onClick={handleLogout} className={styles.logoutBtn}>
                             Logout

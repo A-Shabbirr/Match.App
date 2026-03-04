@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import styles from "./login.module.css";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const page = () => {
     const [email, setEmail] = useState('');
@@ -70,7 +71,14 @@ const page = () => {
                 <button type="submit" disabled={loading}>
                     {loading ? 'Logging in...' : 'Login'}
                 </button>
+                <div className={styles.login}>
+                    <p>Don't have an account?</p>
+                    <Link href="/signup">
+                        <p className={styles.pl}>Login</p>
+                    </Link>
+                </div>
             </form>
+
         </div>
     );
 };

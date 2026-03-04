@@ -17,6 +17,7 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+
 // Check role middleware
 const authorizeRole = (allowedRoles) => {
     return (req, res, next) => {

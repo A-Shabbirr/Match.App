@@ -218,11 +218,11 @@ const Page = () => {
 
                             <div className={styles.MatchCard_S}>
                                 <h4>Players</h4>
-                                <ul>
+                                {/* <ul>
                                     {t.players.map(pid => (
                                         <li key={pid}>{playerMap[pid] || pid}</li>
                                     ))}
-                                </ul>
+                                </ul> */}
                             </div>
 
                             <div className={styles.MatchCard_T}>

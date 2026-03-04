@@ -1,3 +1,4 @@
+// userController.js
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -55,18 +56,15 @@ exports.loginUser = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-        // Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-        // Sign JWT token
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
 
-        // Send full response including role
         res.json({
             message: "Login successful",
             token,
@@ -75,9 +73,33 @@ exports.loginUser = async (req, res) => {
             email: user.email,
             role: user.role
         });
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ==================== GET USER BY ID ====================
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select(
+            "name header email role profilePicture"
+        );
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        res.json(user);
+    } catch (err) {
+        console.error("Error in getUserById:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ==================== GET ALL USERS ====================
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().select("-password");
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
