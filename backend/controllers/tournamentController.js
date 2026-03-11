@@ -35,7 +35,7 @@ exports.createTournament = async (req, res) => {
         res.status(201).json(tournament);
 
     } catch (error) {
-        console.error('Error saving tournament:', err);
+        console.error('Error saving tournament:', error);
         res.status(500).json({ message: error.message });
     }
 };
