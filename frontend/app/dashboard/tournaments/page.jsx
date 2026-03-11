@@ -38,6 +38,7 @@ const Page = () => {
                 const res = await fetch(`${API}/tournaments`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                if (!res.ok) throw new Error('Failed to fetch tournaments');
                 const data = await res.json();
                 setTournaments(data);
             } catch (err) {
@@ -57,6 +58,7 @@ const Page = () => {
                 const res = await fetch(`${API}/users`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                if (!res.ok) throw new Error('Failed to fetch teams');
                 const data = await res.json();
                 setTeams(data);
 
@@ -71,22 +73,22 @@ const Page = () => {
         fetchTeams();
     }, [token]);
 
-    // Fetch matches
+    // Fetch matches for selected tournament
     useEffect(() => {
-        if (!selectedTournament || !token) return;
-
         const fetchMatches = async () => {
+            if (!selectedTournament) return;
+
             try {
                 const res = await fetch(`${API}/tournaments/${selectedTournament._id}/matches`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                if (!res.ok) throw new Error("Failed to fetch matches");
                 const data = await res.json();
                 setMatches(data);
             } catch (err) {
-                console.error("Error fetching matches:", err);
+                console.error("Failed to fetch matches", err);
             }
         };
-
         fetchMatches();
     }, [selectedTournament?._id, token]);
 
@@ -97,6 +99,11 @@ const Page = () => {
 
         if (!name || selectedTeams.length < 2) {
             alert('Add a tournament name and select at least 2 teams');
+            return;
+        }
+
+        if (!startDate || !endDate) {
+            alert('Select start and end dates!');
             return;
         }
 
@@ -121,8 +128,6 @@ const Page = () => {
                 })
             });
 
-            console.log("Status:", res.status);
-
             if (!res.ok) {
                 const err = await res.text();
                 console.error("Server error:", err);
@@ -131,8 +136,7 @@ const Page = () => {
             }
 
             const newTournament = await res.json();
-
-            alert('Tournament Created');
+            alert('Tournament Created Successfully!');
             setTournaments(prev => [...prev, newTournament]);
 
             setFormData({
@@ -186,7 +190,6 @@ const Page = () => {
                 </select>
 
                 <h3 className={styles.h1}>Select Teams</h3>
-
                 <div className={styles.gridContainer}>
                     {teams.map(t => (
                         <label key={t._id} className={styles.check}>
@@ -215,16 +218,15 @@ const Page = () => {
             </form>
 
             <h2 className={styles.h2}>All Tournaments</h2>
-
+            {tournaments.length === 0 && <p>No tournaments yet.</p>}
             {tournaments.map(t => (
                 <div key={t._id} className={styles.tournamentWrapper}>
-
                     <div
                         className={styles.tournamentCard}
                         onClick={() => setSelectedTournament(selectedTournament?._id === t._id ? null : t)}
                     >
                         <span>{t.name} ({t.type})</span>
-
+                        <p>Start: {new Date(t.startDate).toLocaleDateString()} | End: {new Date(t.endDate).toLocaleDateString()}</p>
                         <Link href={`schedule/${t._id}`}>
                             <p className={styles.vd_l}>View Details</p>
                         </Link>
@@ -232,50 +234,38 @@ const Page = () => {
 
                     {selectedTournament?._id === t._id && (
                         <div className={styles.MatchCard}>
-
                             <div className={styles.MatchCard_F}>
                                 <h3>{t.name}</h3>
                                 <p>Type: {t.type}</p>
                                 <p>Status: {t.status}</p>
+                                <p>Start: {new Date(t.startDate).toLocaleDateString()} | End: {new Date(t.endDate).toLocaleDateString()}</p>
                             </div>
 
                             <div className={styles.MatchCard_S}>
                                 <h4>Teams</h4>
-                                {/* 
                                 <ul>
                                     {t.teams?.map(id => (
                                         <li key={id}>{teamMap[id] || id}</li>
                                     ))}
                                 </ul>
-                                */}
                             </div>
 
                             <div className={styles.MatchCard_T}>
                                 <h4>Matches</h4>
-                                <p className={styles.vd}>
-                                    Click details above to see all matches, standings and others
-                                </p>
-
-                                <div className={styles.MatchCard_T_child}>
-                                    {matches.length === 0 ? (
-                                        <p>No matches yet</p>
-                                    ) : (
-                                        matches.slice(0, 3).map(m => (
-                                            <div key={m._id} className={styles.matchCard}>
-                                                <h4>
-                                                    {teamMap[m.playerA._id]} vs {teamMap[m.playerB._id]}
-                                                </h4>
-                                                <p>Score: {m.scoreA} - {m.scoreB}</p>
-                                                <p>Status: {m.status}</p>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
+                                {matches.length === 0 ? (
+                                    <p>No matches yet</p>
+                                ) : (
+                                    matches.map(m => (
+                                        <div key={m._id} className={styles.matchCard}>
+                                            <h4>{teamMap[m.playerA._id]} vs {teamMap[m.playerB._id]}</h4>
+                                            <p>Score: {m.scoreA} - {m.scoreB}</p>
+                                            <p>Status: {m.status}</p>
+                                        </div>
+                                    ))
+                                )}
                             </div>
-
                         </div>
                     )}
-
                 </div>
             ))}
         </div>

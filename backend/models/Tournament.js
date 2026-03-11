@@ -14,12 +14,26 @@ const tournamentSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
-        enum: ["league", "knockout"], 
+        enum: ["league", "knockout"],
         set: v => v.toLowerCase().trim()
     },
     teams: [
         {
             type: String
+        }
+    ], startDate: {
+        type: Date,
+        required: true
+    },
+    endDate: {
+        type: Date,
+        required: true
+    },
+
+    matches: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Match"
         }
     ]
 }, { timestamps: true })

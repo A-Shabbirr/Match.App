@@ -1,11 +1,11 @@
-
 const Tournament = require("../models/Tournament");
+const Match = require("../models/Match")
+const { generateKnockoutMatches, generateLeagueMatches } = require("../services/tournamentServices")
 
 // CREATE
 exports.createTournament = async (req, res) => {
-    console.log('Incoming POST /tournaments:', req.body);
     try {
-        const { name, type, status, teams  } = req.body;
+        const { name, type, status, teams, startDate, endDate } = req.body;
 
         if (!type) {
             return res.status(400).json({
@@ -24,18 +24,34 @@ exports.createTournament = async (req, res) => {
                 message: "Knockout requires even number of teams"
             });
         }
-
         const tournament = await Tournament.create({
             name,
             type,
             status,
-            teams
+            teams,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate)
         });
+        let matchesData = [];
+        if (type === "league") {
+            matchesData = generateLeagueMatches(teams);
+        }
+        if (type === "knockout") {
+            matchesData = generateKnockoutMatches(teams);
+        }
+        const matchDocs = await Promise.all(matchesData.map(m =>
+            Match.create({ ...m, tournament: tournament._id })
+        ));
 
+        tournament.matches = matchDocs.map(m => m._id);
+        await tournament.save();
+
+        // Populate matches before returning if you want
+        await tournament.populate("matches");
         res.status(201).json(tournament);
 
     } catch (error) {
-        console.error('Error saving tournament:', error);
+        console.error("Error creating tournament:", error);
         res.status(500).json({ message: error.message });
     }
 };
