@@ -14,7 +14,8 @@ const tournamentSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
-        enum: ["League", "Knockout "]
+        enum: ["league", "knockout"], 
+        set: v => v.toLowerCase().trim()
     },
     teams: [
         {

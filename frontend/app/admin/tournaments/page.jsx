@@ -122,6 +122,8 @@ const Page = () => {
 
         } catch (err) {
             console.error("Error creating tournament:", err);
+        } finally {
+            console.log('Incoming POST /tournaments:', req.body);
         }
     };
 

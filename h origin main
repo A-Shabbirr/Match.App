@@ -1,0 +1,22 @@
+[33mbde5cd5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m checking tournament error
+[33m686221d[m user not registering in mongoDB
+[33m73cc5e4[m backend deployed , issue was mongo cluster username and pw
+[33m7045915[m backend issues resolved
+[33mb33f4de[m backend issues resolved
+[33mc93d60f[m Signup issue cleared
+[33m32d8925[m Updated frontend & backend code for tournament app
+[33ma2286aa[m Add root scripts to run frontend + backend simultaneously
+[33me05300f[m Rename frontend folder and keep all frontend files
+[33m6643e35[m Initial commit - frontend and backend
+[33m676eb13[m (FE + BE)
+[33mbde5cd5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m checking tournament error
+[33m686221d[m user not registering in mongoDB
+[33m73cc5e4[m backend deployed , issue was mongo cluster username and pw
+[33m7045915[m backend issues resolved
+[33mb33f4de[m backend issues resolved
+[33mc93d60f[m Signup issue cleared
+[33m32d8925[m Updated frontend & backend code for tournament app
+[33ma2286aa[m Add root scripts to run frontend + backend simultaneously
+[33me05300f[m Rename frontend folder and keep all frontend files
+[33m6643e35[m Initial commit - frontend and backend
+[33m676eb13[m (FE + BE)

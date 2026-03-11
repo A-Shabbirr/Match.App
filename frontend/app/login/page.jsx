@@ -74,7 +74,7 @@ const page = () => {
                 <div className={styles.login}>
                     <p>Don't have an account?</p>
                     <Link href="/signup">
-                        <p className={styles.pl}>Login</p>
+                        <p className={styles.pl}>Signup</p>
                     </Link>
                 </div>
             </form>

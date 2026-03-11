@@ -3,8 +3,9 @@ const Tournament = require("../models/Tournament");
 
 // CREATE
 exports.createTournament = async (req, res) => {
+    console.log('Incoming POST /tournaments:', req.body);
     try {
-        const { name, type, status, teams } = req.body;
+        const { name, type, status, teams  } = req.body;
 
         if (!type) {
             return res.status(400).json({
@@ -34,6 +35,7 @@ exports.createTournament = async (req, res) => {
         res.status(201).json(tournament);
 
     } catch (error) {
+        console.error('Error saving tournament:', err);
         res.status(500).json({ message: error.message });
     }
 };
