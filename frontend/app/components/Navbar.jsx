@@ -1,72 +1,56 @@
-// Navbar.jsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './styles/navbar.module.css';
 import { useRouter } from 'next/navigation';
+import { UserContext } from '../context/UserContext';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
-// Use the uploaded Cloudinary image as default avatar
 const DEFAULT_AVATAR = "https://res.cloudinary.com/dyi3wxmy3/image/upload/v1773435973/T_logo_iwqy4i.png";
 
 const Navbar = () => {
-    const [userDetails, setUserDetails] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+    const { user, setUser, fetchUser } = useContext(UserContext);
+
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [bio, setBio] = useState("");
     const [profileFile, setProfileFile] = useState(null);
-    const router = useRouter();
+    const [isEditing, setIsEditing] = useState(false);
+    const modalRef = useRef(null);
 
-    const fetchUser = async () => {
-        const token = localStorage.getItem("token");
-        const userId = localStorage.getItem("userId");
-        console.log("Token:", token);
-        console.log("UserId:", userId);
-        if (!token || !userId) {
-            setUserDetails(null);
-            setLoading(false);
-            return;
-        }
-
-        try {
-            const res = await fetch(`${API}/users/${userId}`, {
-                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-            });
-
-            if (!res.ok) throw new Error("Failed to fetch user");
-
-            const data = await res.json();
-            setUserDetails(data);
-
-        } catch (err) {
-            console.error("Error fetching user:", err);
-            setUserDetails(null);
-        } finally {
-            setLoading(false);
-        }
+    // Reset bio & file when modal closes
+    const handleCloseModal = () => {
+        setShowProfileModal(false);
+        setIsEditing(false);
+        setBio("");      
+        setProfileFile(null); 
     };
 
+    // Fetch user if not loaded
     useEffect(() => {
-        fetchUser();
-        const handleAuthChange = () => fetchUser();
-        const handleStorage = (e) => fetchUser();
+        if (!user) fetchUser();
+    }, [user]);
 
-        window.addEventListener("authChanged", handleAuthChange);
-        window.addEventListener("storage", handleStorage);
-
-        return () => {
-            window.removeEventListener("authChanged", handleAuthChange);
-            window.removeEventListener("storage", handleStorage);
+    // Close modal on outside click
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                handleCloseModal();
+            }
         };
-    }, []);
+        if (showProfileModal) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showProfileModal]);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
         localStorage.removeItem("role");
-        setUserDetails(null);
+        setUser(null);
         window.dispatchEvent(new Event("authChanged"));
         router.replace("/login");
     };
@@ -74,8 +58,8 @@ const Navbar = () => {
     const handleProfileUpdate = async () => {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
-        console.log("API:", API);
-        console.log("userId:", userId);
+        if (!token || !userId) return alert("User not authenticated");
+
         const formData = new FormData();
         formData.append("bio", bio);
         if (profileFile) formData.append("profilePicture", profileFile);
@@ -87,53 +71,51 @@ const Navbar = () => {
                 body: formData,
             });
 
-            if (!res.ok) throw new Error("Profile update failed");
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Profile update failed");
 
-            console.log("PUT URL:", `${API}/users/${userId}`);
-            const updated = await res.json();
-            setUserDetails(updated);
-            setShowProfileModal(false);
+            setUser(data);       // Update global context
+            handleCloseModal();
         } catch (err) {
-            console.error(err);
+            console.error("Error updating profile:", err);
             alert(err.message);
         }
     };
 
-    if (loading) return null;
-
     return (
         <nav className={styles.navbar}>
+            {/* Logo */}
             <div className={styles.logoContainer}>
-                <Link href={userDetails ? '/dashboard' : '/'}>
+                <Link href={user ? '/dashboard' : '/'}>
                     <div className={styles.logoCircle}>
                         <Image src='/T_logo.png' width={50} height={50} alt='App Logo' />
                     </div>
                 </Link>
             </div>
 
+            {/* Title */}
             <div className={styles.title}>The Match'App</div>
 
+            {/* Profile Section */}
             <div className={styles.profileSection}>
-                {userDetails ? (
-                    <>
-                        <div
-                            className={styles.profileTrigger}
-                            onClick={() => {
-                                setBio(userDetails?.bio || "");
-                                setShowProfileModal(true);
-                            }}
-                        >
-                            <Image
-                                src={userDetails?.profilePicture || DEFAULT_AVATAR}
-                                alt="Profile"
-                                width={35}
-                                height={35}
-                                className={styles.profilePic}
-                            />
-                            <span className={styles.username}>{userDetails.header || "User"}</span>
-                        </div>
-                        <button className={styles.logoutBtn} onClick={handleLogout}>Logout</button>
-                    </>
+                {user ? (
+                    <div
+                        className={styles.profileTrigger}
+                        onClick={() => {
+                            setBio(user?.bio || "");
+                            setIsEditing(false);
+                            setShowProfileModal(true);
+                        }}
+                    >
+                        <Image
+                            src={user?.profilePicture || DEFAULT_AVATAR}
+                            alt="Profile"
+                            width={35}
+                            height={35}
+                            className={styles.profilePic}
+                        />
+                        <span className={styles.username}>{user.header || "User"}</span>
+                    </div>
                 ) : (
                     <>
                         <Link href='/login' className={styles.authLink}>Login</Link>
@@ -143,35 +125,66 @@ const Navbar = () => {
                 )}
             </div>
 
+            {/* Profile Modal */}
             {showProfileModal && (
-                <div className={styles.profilePopup}>
-                    <div className={styles.profileCard}>
+                <div className={styles.modalOverlay}>
+                    <div ref={modalRef} className={styles.profilePopup}>
+                        {/* Avatar */}
+                        <Image
+                            src={user?.profilePicture || DEFAULT_AVATAR}
+                            width={80}
+                            height={80}
+                            alt="avatar"
+                            className={styles.popupAvatar}
+                        />
+
+                        {/* Header & Email */}
                         <div className={styles.profileHeader}>
-                            <Image
-                                src={userDetails?.profilePicture || DEFAULT_AVATAR}
-                                width={80}
-                                height={80}
-                                alt="avatar"
-                                className={styles.popupAvatar}
-                            />
-                            <h3>{userDetails?.header}</h3>
-                            <p>{userDetails?.email}</p>
+                            <h3>{user?.header}</h3>
+                            <p>{user?.email}</p>
                         </div>
 
-                        <div className={styles.profileEdit}>
-                            <label>Profile Picture</label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => setProfileFile(e.target.files[0])}
-                            />
-                            <label>Bio</label>
-                            <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
-                            <div className={styles.popupButtons}>
-                                <button onClick={handleProfileUpdate}>Save</button>
-                                <button className={styles.cancelBtn} onClick={() => setShowProfileModal(false)}>Close</button>
+                        {/* Bio */}
+                        {!isEditing && (
+                            <div className={styles.profileBio}>
+                                {user?.bio || "No bio yet"}
                             </div>
-                        </div>
+                        )}
+
+                        {/* Edit + Logout buttons */}
+                        {!isEditing && (
+                            <div className={styles.profileActions}>
+                                <button className={styles.editBtn} onClick={() => setIsEditing(true)}>Edit</button>
+                                <button className={styles.logoutBtn} onClick={handleLogout}>Logout</button>
+                            </div>
+                        )}
+
+                        {/* Edit form */}
+                        {isEditing && (
+                            <div className={styles.profileEdit}>
+                                <label>Profile Picture</label>
+                                {/* File input */}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setProfileFile(e.target.files[0])}
+                                />
+                                {/* Show selected file name with cancel */}
+                                {profileFile && (
+                                    <div className={styles.fileChip}>
+                                        <span>{profileFile.name}</span>
+                                        <button onClick={() => setProfileFile(null)}>✖</button>
+                                    </div>
+                                )}
+
+                                <label>Bio</label>
+                                <textarea  onChange={(e) => setBio(e.target.value)} rows={3} />
+                                <div className={styles.popupButtons}>
+                                    <button onClick={handleProfileUpdate}>Save</button>
+                                    <button className={styles.cancelBtn} onClick={handleCloseModal}>Close</button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

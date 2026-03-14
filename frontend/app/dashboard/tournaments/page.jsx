@@ -6,6 +6,7 @@ import Link from 'next/link';
 import styles from './ct.module.css';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
+const DEFAULT_AVATAR = "https://res.cloudinary.com/dyi3wxmy3/image/upload/v1773435973/T_logo_iwqy4i.png";
 
 const Page = () => {
     const [tournaments, setTournaments] = useState([]);
@@ -49,7 +50,7 @@ const Page = () => {
         fetchTournaments();
     }, [token]);
 
-    // Fetch teams
+    // Fetch teams and build teamMap
     useEffect(() => {
         if (!token) return;
 
@@ -62,8 +63,9 @@ const Page = () => {
                 const data = await res.json();
                 setTeams(data);
 
+                // Map each team ID to full object for avatar + header
                 const map = {};
-                data.forEach(t => map[t._id] = t.header || t.name || "Team");
+                data.forEach(t => map[t._id] = t);
                 setTeamMap(map);
             } catch (err) {
                 console.error("Error fetching teams:", err);
@@ -207,7 +209,14 @@ const Page = () => {
                                     }));
                                 }}
                             />
-                            {t.header || t.name}
+                            <div className={styles.teamItem}>
+                                <img
+                                    src={t.profilePicture || DEFAULT_AVATAR}
+                                    alt={t.header || t.name || "Team"}
+                                    className={styles.teamAvatar}
+                                />
+                                <span>{t.header || t.name}</span>
+                            </div>
                         </label>
                     ))}
                 </div>
@@ -244,9 +253,19 @@ const Page = () => {
                             <div className={styles.MatchCard_S}>
                                 <h4>Teams</h4>
                                 <ul>
-                                    {t.teams?.map(id => (
-                                        <li key={id}>{teamMap[id] || id}</li>
-                                    ))}
+                                    {t.teams?.map(id => {
+                                        const team = teamMap[id];
+                                        return (
+                                            <li key={id} className={styles.teamItem}>
+                                                <img
+                                                    src={team?.profilePicture || DEFAULT_AVATAR}
+                                                    alt={team?.header || team?.name || "Team"}
+                                                    className={styles.teamAvatar}
+                                                />
+                                                <span>{team?.header || team?.name || id}</span>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             </div>
 
@@ -256,15 +275,30 @@ const Page = () => {
                                     {matches.length === 0 ? (
                                         <p>No matches yet</p>
                                     ) : (
-                                        matches.slice(0, 3).map(m => (
-                                            <div key={m._id} className={styles.matchCard}>
-                                                <h4>
-                                                    {teamMap[m.teamA] || m.teamA} vs {teamMap[m.teamB] || m.teamB}
-                                                </h4>
-                                                <p>Score: {m.scoreA ?? 0} - {m.scoreB ?? 0}</p>
-                                                <p>Status: {m.status || "Pending"}</p>
-                                            </div>
-                                        ))
+                                        matches.slice(0, 3).map(m => {
+                                            const teamA = teamMap[m.teamA];
+                                            const teamB = teamMap[m.teamB];
+                                            return (
+                                                <div key={m._id} className={styles.matchCard}>
+                                                    <h4>
+                                                        <img
+                                                            src={teamA?.profilePicture || DEFAULT_AVATAR}
+                                                            alt={teamA?.header || teamA?.name || "Team A"}
+                                                            className={styles.teamAvatar}
+                                                        />
+                                                        {teamA?.header || teamA?.name || m.teamA} vs
+                                                        <img
+                                                            src={teamB?.profilePicture || DEFAULT_AVATAR}
+                                                            alt={teamB?.header || teamB?.name || "Team B"}
+                                                            className={styles.teamAvatar}
+                                                        />
+                                                        {teamB?.header || teamB?.name || m.teamB}
+                                                    </h4>
+                                                    <p>Score: {m.scoreA ?? 0} - {m.scoreB ?? 0}</p>
+                                                    <p>Status: {m.status || "Pending"}</p>
+                                                </div>
+                                            );
+                                        })
                                     )}
                                 </div>
                             </div>

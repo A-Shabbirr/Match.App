@@ -4,6 +4,12 @@ const { verifyToken } = require("../middleware/authmiddleware");
 const { updateUserProfile, getUserById, getAllUsers } = require("../controllers/userController");
 const parser = require("../middleware/multerCloudinary");
 
+
+router.put("/:id", verifyToken, parser.single("profilePicture"), updateUserProfile);
+
+// Protected routes
+router.get("/", verifyToken, getAllUsers);      // all users
+router.get("/:id", verifyToken, getUserById);  // single user
 // routes/userRoute.js
 router.get("/test", (req, res) => {
     try {
@@ -13,10 +19,4 @@ router.get("/test", (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-router.put("/:id", verifyToken, parser.single("profilePicture"), updateUserProfile);
-
-// Protected routes
-router.get("/", verifyToken, getAllUsers);      // all users
-router.get("/:id", verifyToken, getUserById);  // single user
-
 module.exports = router;

@@ -111,12 +111,16 @@ exports.updateUserProfile = async (req, res) => {
         const { id } = req.params;
 
         console.log("PUT /users/:id called for user:", id);
+        console.log("Request headers:", req.headers);
         console.log("Request body:", req.body);
         console.log("File uploaded:", req.file);
 
         const updateData = {};
         if (req.body.bio) updateData.bio = req.body.bio;
-        if (req.file) updateData.profilePicture = req.file.path; // Cloudinary URL
+        if (req.file) {
+            console.log("Updating profilePicture with URL:", req.file.path);
+            updateData.profilePicture = req.file.path; // Cloudinary URL
+        }
 
         const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
         if (!updatedUser) return res.status(404).json({ message: "User not found" });
@@ -125,6 +129,6 @@ exports.updateUserProfile = async (req, res) => {
         res.json(updatedUser);
     } catch (err) {
         console.error("Profile update failed:", err);
-        res.status(500).json({ message: "Profile update failed" });
+        res.status(500).json({ message: err.message || "Profile update failed" });
     }
 };

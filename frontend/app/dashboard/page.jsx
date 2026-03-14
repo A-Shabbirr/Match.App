@@ -106,7 +106,23 @@ const Page = () => {
                     className={styles.searchInput}
                 />
             </div>
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>Users</h2>
+                </div>
 
+                {loadingUsers ? (
+                    <p>Loading users...</p>
+                ) : (
+                    <div className={styles.grid}>
+                        {filteredUsers.length > 0 ? (
+                            filteredUsers.map(user => <UserCard key={user._id} user={user} />)
+                        ) : (
+                            <p>No users found.</p>
+                        )}
+                    </div>
+                )}
+            </section>
             {/* Tournaments Section */}
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
@@ -131,24 +147,7 @@ const Page = () => {
                 )}
             </section>
 
-            {/* Users Section */}
-            <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Users</h2>
-                </div>
 
-                {loadingUsers ? (
-                    <p>Loading users...</p>
-                ) : (
-                    <div className={styles.grid}>
-                        {filteredUsers.length > 0 ? (
-                            filteredUsers.map(user => <UserCard key={user._id} user={user} />)
-                        ) : (
-                            <p>No users found.</p>
-                        )}
-                    </div>
-                )}
-            </section>
         </div>
     );
 };

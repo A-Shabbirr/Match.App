@@ -1,6 +1,7 @@
 /* ===== USER CARD ===== */
 .card {
     background-color: #fff;
+    border: 1px solid #ddd;
     border-radius: 12px;
     padding: 16px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
@@ -26,4 +27,13 @@
     font-size: 12px;
     color: #666;
     word-break: break-all;
+}
+/* Avatar in user card */
+.avatar {
+    width: 60px;            /* fixed size for consistency */
+    height: 60px;
+    border-radius: 50%;     /* makes it circular */
+    object-fit: cover;      /* ensures the image covers the circle */
+    margin-bottom: 12px;    /* spacing below avatar */
+    background-color: #f0f0f0; /* fallback background if image fails */
 }
