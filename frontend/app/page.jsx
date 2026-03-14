@@ -1,62 +1,52 @@
 'use client';
+
 import Link from "next/link";
 import styles from "./page.module.css";
-import Navbar from "./components/Navbar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Spinner from "./components/Spinner";
 
 export default function Home() {
-  const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-      const role = localStorage.getItem("role");
+    const token = localStorage.getItem("token");
+    const userRole = localStorage.getItem("role");
 
-      if (!token || !userId || !role) {
-        // No token or role → redirect to signup
-        setLoading(false);
-        return;
-      }
+    if (token && userRole) {
+      setIsAuthenticated(true);
+      setRole(userRole);
 
-      try {
-        // Optional: fetch full user details from backend
-        const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
+      // auto redirect after 1.5s
+      setTimeout(() => {
+        router.replace(userRole === "admin" ? "/admin" : "/dashboard");
+      }, 1500);
+    }
 
-        if (!res.ok) throw new Error("Failed to fetch user details");
-
-        const data = await res.json();
-        setUserDetails(data);
-
-        // Redirect based on role
-        if (role === "admin") router.replace("/admin");
-        else if (role === "user") router.replace("/dashboard");
-      } catch (error) {
-        console.error("Error fetching user details:", error);
-        setUserDetails(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
+    setLoading(false);
   }, [router]);
+
+  if (loading) return <Spinner />;
 
   return (
     <div className={styles.page}>
-      <Navbar />
-      {loading ? (
-        <Spinner />
+      {!isAuthenticated ? (
+        <div className={styles.splashContainer}>
+          <img src="/T_logo.png" alt="App Logo" className={styles.logo} />
+          <h1 className={styles.appName}>Match'App</h1>
+          <Link href="/signup" className={styles.signupButton}>
+            Sign Up to your account
+          </Link>
+        </div>
       ) : (
-        !userDetails && <Link href='/signup'>Sign Up to your account</Link>
+        <div className={styles.splashContainer}>
+          <img src="/T_logo.png" alt="App Logo" className={styles.logo} />
+          <h1 className={styles.appName}>Welcome back!</h1>
+          <p>Redirecting to the app...</p>
+        </div>
       )}
     </div>
   );

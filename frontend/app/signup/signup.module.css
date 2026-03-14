@@ -1,70 +1,90 @@
 .signup_container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f5f5f5;
-  width: 100%;
+min-height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
 }
 
 .signup_form {
-  background: #fff;
-  padding: 2rem 3rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
+width: 100%;
+max-width: 460px;
+padding: 40px 34px;
+border-radius: 16px;
+backdrop-filter: blur(14px);
+background: rgba(255, 255, 255, 0.08);
+box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+display: flex;
+flex-direction: column;
+gap: 18px;
+color: white;
 }
 
 .signup_form h2 {
-  margin-bottom: 1.5rem;
-  text-align: center;
+text-align: center;
+font-size: 28px;
+font-weight: 600;
+margin-bottom: 8px;
 }
 
 .signup_form label {
-  display: block;
-  margin-bottom: 1rem;
-  font-weight: 500;
+display: flex;
+flex-direction: column;
+font-size: 14px;
+gap: 6px;
 }
 
 .signup_form input {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  margin-top: 0.3rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+padding: 12px 14px;
+border-radius: 8px;
+border: none;
+font-size: 14px;
+outline: none;
+transition: 0.2s;
+}
+
+.signup_form input:focus {
+box-shadow: 0 0 0 2px #4fc3f7;
 }
 
 .signup_form button {
-  width: 100%;
-  padding: 0.7rem;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
+margin-top: 10px;
+padding: 12px;
+border-radius: 8px;
+border: none;
+background: #4fc3f7;
+color: #04212b;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.25s ease;
 }
 
 .signup_form button:hover {
-  background-color: #0056b3;
+background: #29b6f6;
+transform: translateY(-1px);
+}
+
+.signup_form button:disabled {
+opacity: 0.6;
+cursor: not-allowed;
 }
 
 .login {
-  margin: 10px 0px;
-  gap: 5px;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
-
-.p {
-  font-size: 12px;
+margin-top: 6px;
+display: flex;
+justify-content: center;
+gap: 6px;
+font-size: 14px;
 }
 
 .pl {
-  color: blue;
-  font-size: 12px;
-  text-decoration: underline;
+color: #4fc3f7;
+font-weight: 600;
+cursor: pointer;
+}
+
+.pl:hover {
+text-decoration: underline;
 }

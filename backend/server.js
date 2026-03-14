@@ -1,5 +1,6 @@
 // server.js
 require("dotenv").config();
+
 const express = require("express");
 const app = express();
 const connectDB = require("./config/db");
@@ -27,7 +28,9 @@ app.use(cors({
   },
   credentials: true
 }));
-
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
 // Test root route
 app.get("/", (req, res) => {
   res.send("Hello Adnan Shabbir, Backend is running");
@@ -53,8 +56,14 @@ app.use("/admin", adminRoutes);
 const dashboardRoutes = require("./routes/dashboardRoutes");
 app.use("/dashboard", dashboardRoutes);
 
+app.use("/uploads", express.static("uploads"));
+
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
+});
+app.use((err, req, res, next) => {
+  console.error("🔥 ERROR:", err.message);
+  res.status(500).json({ message: err.message });
 });

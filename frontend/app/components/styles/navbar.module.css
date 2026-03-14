@@ -1,40 +1,249 @@
-.Navbar {
-    background-color: yellow;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 0px 20px;
+/* Navbar */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #1e2a38, #003366);
+  /* EPL dark blue style */
+  color: #fff;
+  padding: 10px 20px;
+  font-family: 'Arial', sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.image_div {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 60px;
-    width: 60px;
-    border-radius: 200px;
-    background-color: white;
-    overflow: hidden;
+/* Logo */
+.logoContainer {
+  display: flex;
+  align-items: center;
 }
 
-.image {
-    object-fit: contain;
+.logoCircle {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
 }
 
-.head {
-    font-size: 45;
-    font-weight: 800;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+.logoImage {
+  object-fit: contain;
 }
 
-.search {
-    height: 30px;
-    width: 200px;
-    border-radius: 5px;
-    border: 0.5px solid black;
-    outline: none;
-    padding-left: 5px;
+/* Center Title */
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  flex: 1;
+  color: #ffcc00;
+  /* EPL yellow accent */
+}
+
+/* Profile / Auth links */
+.profileSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profilePic {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.username {
+  font-weight: bold;
+}
+
+.logoutBtn {
+  padding: 5px 10px;
+  background: #ffcc00;
+  color: #003366;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.logoutBtn:hover {
+  background: #ffc107;
+}
+
+.authLink {
+  color: #ffcc00;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.authLink:hover {
+  text-decoration: underline;
+}
+
+.separator {
+  margin: 0 5px;
+  color: #fff;
+}
+
+/* Modal (general) */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal input,
+.modal textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #dadce0;
+  font-size: 13px;
+  outline: none;
+}
+
+.modal textarea {
+  resize: none;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancelBtn {
+  background: #f1f3f4;
+  color: #202124;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: #e8eaed;
+}
+
+/* Profile Popup - Google style */
+.profilePopup {
+  position: absolute;
+  top: 60px;
+  /* below navbar */
+  right: 24px;
+  /* align right edge */
+  width: 320px;
+  /* fixed width like Google */
+  z-index: 1000;
+}
+
+.profileCard {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: Roboto, Arial, sans-serif;
+}
+
+.profileHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+}
+
+.popupAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profileHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #202124;
+}
+
+.profileHeader p {
+  margin: 0;
+  font-size: 13px;
+  color: #5f6368;
+}
+
+.profileEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profileEdit input,
+.profileEdit textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #dadce0;
+  font-size: 13px;
+  outline: none;
+}
+
+.profileEdit textarea {
+  resize: none;
+}
+
+.popupButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.popupButtons button {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.popupButtons button:first-child {
+  background: #1a73e8;
+  color: #fff;
+}
+
+.popupButtons button:first-child:hover {
+  background: #1669c1;
+}
+.profileTrigger{
+  cursor: pointer;
 }

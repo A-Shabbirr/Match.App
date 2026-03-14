@@ -12,6 +12,7 @@
 .card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid #37003c;
 }
 
 .cardTitle {

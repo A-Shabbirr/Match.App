@@ -252,18 +252,23 @@ const Page = () => {
 
                             <div className={styles.MatchCard_T}>
                                 <h4>Matches</h4>
-                                {matches.length === 0 ? (
-                                    <p>No matches yet</p>
-                                ) : (
-                                    matches.map(m => (
-                                        <div key={m._id} className={styles.matchCard}>
-                                            <h4>{teamMap[m.playerA._id]} vs {teamMap[m.playerB._id]}</h4>
-                                            <p>Score: {m.scoreA} - {m.scoreB}</p>
-                                            <p>Status: {m.status}</p>
-                                        </div>
-                                    ))
-                                )}
+                                <div className={styles.MatchCard_D}>
+                                    {matches.length === 0 ? (
+                                        <p>No matches yet</p>
+                                    ) : (
+                                        matches.slice(0, 3).map(m => (
+                                            <div key={m._id} className={styles.matchCard}>
+                                                <h4>
+                                                    {teamMap[m.teamA] || m.teamA} vs {teamMap[m.teamB] || m.teamB}
+                                                </h4>
+                                                <p>Score: {m.scoreA ?? 0} - {m.scoreB ?? 0}</p>
+                                                <p>Status: {m.status || "Pending"}</p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
+
                         </div>
                     )}
                 </div>

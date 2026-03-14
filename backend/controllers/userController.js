@@ -1,4 +1,4 @@
-// userController.js
+// controllers/userController.js
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -43,7 +43,7 @@ exports.registerUser = async (req, res) => {
             role: user.role
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error in registerUser:", error);
         res.status(500).json({ message: "Server error" });
     }
 };
@@ -74,7 +74,7 @@ exports.loginUser = async (req, res) => {
             role: user.role
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error in loginUser:", error);
         res.status(500).json({ message: "Server error" });
     }
 };
@@ -83,7 +83,7 @@ exports.loginUser = async (req, res) => {
 exports.getUserById = async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select(
-            "name header email role profilePicture"
+            "name header email role profilePicture bio"
         );
         if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -100,6 +100,31 @@ exports.getAllUsers = async (req, res) => {
         const users = await User.find().select("-password");
         res.json(users);
     } catch (error) {
+        console.error("Error in getAllUsers:", error);
         res.status(500).json({ message: error.message });
+    }
+};
+
+// ==================== UPDATE PROFILE ====================
+exports.updateUserProfile = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        console.log("PUT /users/:id called for user:", id);
+        console.log("Request body:", req.body);
+        console.log("File uploaded:", req.file);
+
+        const updateData = {};
+        if (req.body.bio) updateData.bio = req.body.bio;
+        if (req.file) updateData.profilePicture = req.file.path; // Cloudinary URL
+
+        const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+        if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+        console.log("Profile updated successfully:", updatedUser);
+        res.json(updatedUser);
+    } catch (err) {
+        console.error("Profile update failed:", err);
+        res.status(500).json({ message: "Profile update failed" });
     }
 };

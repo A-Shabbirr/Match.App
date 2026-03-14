@@ -29,8 +29,7 @@ const page = () => {
             // Save token and role locally
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", data.role);
-            localStorage.setItem("id", data._id);
-
+            localStorage.setItem("userId", data._id);
             // Redirect based on role
             if (data.role === 'admin') {
                 router.replace('/admin');

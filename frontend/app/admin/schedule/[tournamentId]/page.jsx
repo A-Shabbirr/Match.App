@@ -4,203 +4,112 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from '../[tournamentId]/tournament.module.css';
 import Spinner from '@/app/components/Spinner';
+import Navbar from '@/app/components/Navbar';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 const SchedulePage = () => {
     const { tournamentId } = useParams();
-
     const [tournament, setTournament] = useState(null);
     const [matches, setMatches] = useState([]);
-    const [playerMap, setPlayerMap] = useState({});
-    const [editMatchID, setEditMatchID] = useState(null);
-    const [editData, setEditData] = useState({
-        scoreA: 0,
-        scoreB: 0,
-        status: 'Upcoming',
-        winner: ''
-    });
+    const [teamMap, setTeamMap] = useState({});
+    const [loading, setLoading] = useState(true);
     const [token, setToken] = useState(null);
 
-    // Get token safely
+    // Get token
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
-        if (storedToken) {
-            setToken(storedToken);
-        }
+        if (storedToken) setToken(storedToken);
     }, []);
 
-    // Fetch tournament
-    useEffect(() => {
-        if (!token || !tournamentId) return;
-
-        const fetchTournament = async () => {
-            try {
-                const res = await fetch(`${API}/tournaments/${tournamentId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                const data = await res.json();
-                setTournament(data);
-            } catch (err) {
-                console.error("Error fetching tournament:", err);
-            }
-        };
-
-        fetchTournament();
-    }, [token, tournamentId]);
-
-    // Fetch users
     useEffect(() => {
         if (!token) return;
 
-        const fetchUsers = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch(`${API}/users`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                setLoading(true);
 
-                const users = await res.json();
+                // Fetch tournament
+                const tournamentRes = await fetch(`${API}/tournaments/${tournamentId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!tournamentRes.ok) throw new Error("Failed to fetch tournament");
+                const tournamentData = await tournamentRes.json();
+                setTournament(tournamentData);
+
+                // Fetch teams/users for mapping
+                const usersRes = await fetch(`${API}/users`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const usersData = await usersRes.json();
                 const map = {};
+                usersData.forEach(u => map[u._id] = u.header || u.name || "Team");
+                setTeamMap(map);
 
-                users.forEach(user => {
-                    map[user._id] = user.header;
+                // Fetch matches
+                const matchesRes = await fetch(`${API}/tournaments/${tournamentId}/matches`, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
+                const matchesData = await matchesRes.json();
+                setMatches(matchesData);
 
-                setPlayerMap(map);
             } catch (err) {
-                console.error("Error fetching users:", err);
+                console.error(err);
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchUsers();
-    }, [token]);
-
-    // Fetch matches
-    useEffect(() => {
-        if (!token || !tournamentId) return;
-
-        const fetchMatches = async () => {
-            try {
-                const res = await fetch(
-                    `${API}/tournaments/${tournamentId}/matches`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                );
-
-                const data = await res.json();
-                setMatches(data);
-            } catch (err) {
-                console.error("Error fetching matches:", err);
-            }
-        };
-
-        fetchMatches();
+        fetchData();
     }, [token, tournamentId]);
 
-    const edit = (match) => {
-        setEditMatchID(match._id);
-        setEditData({
-            scoreA: match.scoreA,
-            scoreB: match.scoreB,
-            status: match.status,
-            winner: match.winner || ''
-        });
-    };
-
-    const save = async (matchId) => {
-        try {
-            await fetch(
-                `${API}/tournaments/${tournamentId}/matches/${matchId}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        scoreA: Number(editData.scoreA),
-                        scoreB: Number(editData.scoreB),
-                        status: editData.status,
-                        winner: editData.winner || ''
-                    })
-                }
-            );
-
-            setEditMatchID(null);
-
-            // Refresh matches after update
-            const res = await fetch(
-                `${API}/tournaments/${tournamentId}/matches`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
-
-            const data = await res.json();
-            setMatches(data);
-
-        } catch (err) {
-            console.error("Error updating match:", err);
-        }
-    };
-
+    // Calculate standings (example for league)
     const calculateStandings = () => {
-        if (!tournament) return [];
+        if (!tournament || !matches) return [];
 
         const table = {};
-
-        tournament.players.forEach(pid => {
-            table[pid] = {
-                playerId: pid,
-                played: 0,
-                wins: 0,
-                draws: 0,
-                losses: 0,
-                points: 0
-            };
+        tournament.teams.forEach(tid => {
+            table[tid] = { teamId: tid, played: 0, wins: 0, draws: 0, losses: 0, points: 0 };
         });
 
         matches.forEach(match => {
             if (match.status !== 'Completed') return;
 
-            const playerAId = match.playerA._id;
-            const playerBId = match.playerB._id;
+            const teamAId = match.teamA;
+            const teamBId = match.teamB;
 
-            if (!table[playerAId] || !table[playerBId]) return;
-
-            table[playerAId].played++;
-            table[playerBId].played++;
+            table[teamAId].played++;
+            table[teamBId].played++;
 
             if (match.scoreA === match.scoreB) {
-                table[playerAId].draws++;
-                table[playerBId].draws++;
-                table[playerAId].points++;
-                table[playerBId].points++;
+                table[teamAId].draws++;
+                table[teamBId].draws++;
+                table[teamAId].points++;
+                table[teamBId].points++;
                 return;
             }
 
-            if (match.winner === playerAId) {
-                table[playerAId].wins++;
-                table[playerAId].points += 3;
-                table[playerBId].losses++;
-            } else if (match.winner === playerBId) {
-                table[playerBId].wins++;
-                table[playerBId].points += 3;
-                table[playerAId].losses++;
+            if (match.winner === teamAId) {
+                table[teamAId].wins++;
+                table[teamAId].points += 3;
+                table[teamBId].losses++;
+            } else if (match.winner === teamBId) {
+                table[teamBId].wins++;
+                table[teamBId].points += 3;
+                table[teamAId].losses++;
             }
         });
 
-        return Object.values(table).sort(
-            (a, b) => b.points - a.points || b.wins - a.wins
-        );
+        return Object.values(table).sort((a, b) => b.points - a.points || b.wins - a.wins);
     };
+
+    if (loading) return <Spinner />;
 
     return (
         <div className={styles.page}>
+            <Navbar />
             {!tournament ? (
-                <Spinner />
+                <p>Failed to load tournament.</p>
             ) : (
                 <>
                     <h1 style={{ marginBottom: '10px' }}>
@@ -208,101 +117,30 @@ const SchedulePage = () => {
                     </h1>
 
                     <div className={styles.matchCard_parent}>
-                        {matches.map(match => {
-                            const isEditing = editMatchID === match._id;
-
-                            return (
+                        {matches.length === 0 ? (
+                            <p>No matches yet</p>
+                        ) : (
+                            matches.map(match => (
                                 <div key={match._id} className={styles.matchCard}>
                                     <p className={styles.matchPlayers}>
-                                        <strong>{match.playerA.header}</strong> vs{' '}
-                                        <strong>{match.playerB.header}</strong>
+                                        <strong>{teamMap[match.teamA] || match.teamA}</strong> vs{' '}
+                                        <strong>{teamMap[match.teamB] || match.teamB}</strong>
                                     </p>
-
-                                    {isEditing ? (
-                                        <>
-                                            <input
-                                                type="number"
-                                                value={editData.scoreA}
-                                                onChange={e =>
-                                                    setEditData({ ...editData, scoreA: e.target.value })
-                                                }
-                                            />
-                                            <span> - </span>
-                                            <input
-                                                type="number"
-                                                value={editData.scoreB}
-                                                onChange={e =>
-                                                    setEditData({ ...editData, scoreB: e.target.value })
-                                                }
-                                            />
-
-                                            <select
-                                                value={editData.status}
-                                                onChange={e =>
-                                                    setEditData({ ...editData, status: e.target.value })
-                                                }
-                                            >
-                                                <option value="Upcoming">Upcoming</option>
-                                                <option value="Ongoing">Ongoing</option>
-                                                <option value="Completed">Full Time</option>
-                                            </select>
-
-                                            <select
-                                                value={editData.winner}
-                                                onChange={e =>
-                                                    setEditData({ ...editData, winner: e.target.value })
-                                                }
-                                            >
-                                                <option value="">No winner</option>
-                                                <option value={match.playerA._id}>
-                                                    {match.playerA.header}
-                                                </option>
-                                                <option value={match.playerB._id}>
-                                                    {match.playerB.header}
-                                                </option>
-                                            </select>
-
-                                            <button onClick={() => save(match._id)}>Save</button>
-                                            <button onClick={() => setEditMatchID(null)}>Cancel</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <p>Score: {match.scoreA} - {match.scoreB}</p>
-                                            <p>Status: {match.status}</p>
-                                            <p>
-                                                Winner:{' '}
-                                                {match.winner
-                                                    ? playerMap[match.winner]
-                                                    : 'TBD'}
-                                            </p>
-
-                                            <button
-                                                style={{
-                                                    width: 100,
-                                                    backgroundColor: '#ec1ad0',
-                                                    height: 40,
-                                                    border: 'none',
-                                                    borderRadius: 7,
-                                                    color: 'white'
-                                                }}
-                                                onClick={() => edit(match)}
-                                            >
-                                                Edit
-                                            </button>
-                                        </>
-                                    )}
+                                    <p>Score: {match.scoreA ?? 0} - {match.scoreB ?? 0}</p>
+                                    <p>Status: {match.status || "Pending"}</p>
+                                    <p>Winner: {match.winner ? teamMap[match.winner] : 'TBD'}</p>
                                 </div>
-                            );
-                        })}
+                            ))
+                        )}
                     </div>
 
+                    {/* Standings */}
                     <div className={styles.standingsCard}>
                         <h2 className={styles.standingsTitle}>Standings</h2>
-
                         <table className={styles.standingsTable}>
                             <thead>
                                 <tr>
-                                    <th className={styles.points}>Player</th>
+                                    <th className={styles.points}>Team</th>
                                     <th className={styles.points}>P</th>
                                     <th className={styles.points}>W</th>
                                     <th className={styles.points}>D</th>
@@ -312,10 +150,8 @@ const SchedulePage = () => {
                             </thead>
                             <tbody>
                                 {calculateStandings().map((row, index) => (
-                                    <tr key={row.playerId}>
-                                        <td className={styles.points}>
-                                            {index + 1}. {playerMap[row.playerId]}
-                                        </td>
+                                    <tr key={row.teamId}>
+                                        <td className={styles.points}>{index + 1}. {teamMap[row.teamId]}</td>
                                         <td className={styles.points}>{row.played}</td>
                                         <td className={styles.points}>{row.wins}</td>
                                         <td className={styles.points}>{row.draws}</td>

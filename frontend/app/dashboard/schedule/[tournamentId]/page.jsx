@@ -12,24 +12,24 @@ const DashboardSchedulePage = () => {
     const { tournamentId } = useParams();
     const [tournament, setTournament] = useState(null);
     const [matches, setMatches] = useState([]);
-    const [playerMap, setPlayerMap] = useState({});
+    const [teamMap, setTeamMap] = useState({});
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState(null);
 
-    // Get token from localStorage
+    // Get token
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         if (storedToken) setToken(storedToken);
     }, []);
 
-    // Fetch tournament and matches
     useEffect(() => {
         if (!token) return;
+
         const fetchData = async () => {
             try {
                 setLoading(true);
 
-                // Fetch tournament details
+                // Fetch tournament
                 const tournamentRes = await fetch(`${API}/tournaments/${tournamentId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -37,16 +37,14 @@ const DashboardSchedulePage = () => {
                 const tournamentData = await tournamentRes.json();
                 setTournament(tournamentData);
 
-                // Fetch users (for playerMap)
+                // Fetch teams/users for mapping
                 const usersRes = await fetch(`${API}/users`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const usersData = await usersRes.json();
                 const map = {};
-                usersData.forEach(u => {
-                    map[u._id] = u.header || u.name || "User";
-                });
-                setPlayerMap(map);
+                usersData.forEach(u => map[u._id] = u.header || u.name || "Team");
+                setTeamMap(map);
 
                 // Fetch matches
                 const matchesRes = await fetch(`${API}/tournaments/${tournamentId}/matches`, {
@@ -65,42 +63,40 @@ const DashboardSchedulePage = () => {
         fetchData();
     }, [token, tournamentId]);
 
-    // Calculate standings
+    // Calculate standings (example for league)
     const calculateStandings = () => {
-        if (!tournament) return [];
+        if (!tournament || !matches) return [];
 
         const table = {};
-        tournament.players.forEach(pid => {
-            table[pid] = { playerId: pid, played: 0, wins: 0, draws: 0, losses: 0, points: 0 };
+        tournament.teams.forEach(tid => {
+            table[tid] = { teamId: tid, played: 0, wins: 0, draws: 0, losses: 0, points: 0 };
         });
 
         matches.forEach(match => {
             if (match.status !== 'Completed') return;
 
-            const playerAId = match.playerA._id;
-            const playerBId = match.playerB._id;
+            const teamAId = match.teamA;
+            const teamBId = match.teamB;
 
-            if (!table[playerAId] || !table[playerBId]) return;
-
-            table[playerAId].played++;
-            table[playerBId].played++;
+            table[teamAId].played++;
+            table[teamBId].played++;
 
             if (match.scoreA === match.scoreB) {
-                table[playerAId].draws++;
-                table[playerBId].draws++;
-                table[playerAId].points++;
-                table[playerBId].points++;
+                table[teamAId].draws++;
+                table[teamBId].draws++;
+                table[teamAId].points++;
+                table[teamBId].points++;
                 return;
             }
 
-            if (match.winner === playerAId) {
-                table[playerAId].wins++;
-                table[playerAId].points += 3;
-                table[playerBId].losses++;
-            } else if (match.winner === playerBId) {
-                table[playerBId].wins++;
-                table[playerBId].points += 3;
-                table[playerAId].losses++;
+            if (match.winner === teamAId) {
+                table[teamAId].wins++;
+                table[teamAId].points += 3;
+                table[teamBId].losses++;
+            } else if (match.winner === teamBId) {
+                table[teamBId].wins++;
+                table[teamBId].points += 3;
+                table[teamAId].losses++;
             }
         });
 
@@ -121,17 +117,21 @@ const DashboardSchedulePage = () => {
                     </h1>
 
                     <div className={styles.matchCard_parent}>
-                        {matches.map(match => (
-                            <div key={match._id} className={styles.matchCard}>
-                                <p className={styles.matchPlayers}>
-                                    <strong>{match.playerA.header}</strong> vs{' '}
-                                    <strong>{match.playerB.header}</strong>
-                                </p>
-                                <p>Score: {match.scoreA} - {match.scoreB}</p>
-                                <p>Status: {match.status}</p>
-                                <p>Winner: {match.winner ? playerMap[match.winner] : 'TBD'}</p>
-                            </div>
-                        ))}
+                        {matches.length === 0 ? (
+                            <p>No matches yet</p>
+                        ) : (
+                            matches.map(match => (
+                                <div key={match._id} className={styles.matchCard}>
+                                    <p className={styles.matchPlayers}>
+                                        <strong>{teamMap[match.teamA] || match.teamA}</strong> vs{' '}
+                                        <strong>{teamMap[match.teamB] || match.teamB}</strong>
+                                    </p>
+                                    <p>Score: {match.scoreA ?? 0} - {match.scoreB ?? 0}</p>
+                                    <p>Status: {match.status || "Pending"}</p>
+                                    <p>Winner: {match.winner ? teamMap[match.winner] : 'TBD'}</p>
+                                </div>
+                            ))
+                        )}
                     </div>
 
                     {/* Standings */}
@@ -140,7 +140,7 @@ const DashboardSchedulePage = () => {
                         <table className={styles.standingsTable}>
                             <thead>
                                 <tr>
-                                    <th className={styles.points}>Player</th>
+                                    <th className={styles.points}>Team</th>
                                     <th className={styles.points}>P</th>
                                     <th className={styles.points}>W</th>
                                     <th className={styles.points}>D</th>
@@ -150,8 +150,8 @@ const DashboardSchedulePage = () => {
                             </thead>
                             <tbody>
                                 {calculateStandings().map((row, index) => (
-                                    <tr key={row.playerId}>
-                                        <td className={styles.points}>{index + 1}. {playerMap[row.playerId]}</td>
+                                    <tr key={row.teamId}>
+                                        <td className={styles.points}>{index + 1}. {teamMap[row.teamId]}</td>
                                         <td className={styles.points}>{row.played}</td>
                                         <td className={styles.points}>{row.wins}</td>
                                         <td className={styles.points}>{row.draws}</td>

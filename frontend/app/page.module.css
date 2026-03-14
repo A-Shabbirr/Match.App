@@ -1,7 +1,42 @@
 .page {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   height: 100%;
+  text-align: center;
+}
+
+.splashContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.logo {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+}
+
+.appName {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #222;
+}
+
+.signupButton, .goToAppButton {
+  padding: 12px 30px;
+  font-size: 1.2rem;
+  color: white;
+  background-color: #0070f3;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.signupButton:hover, .goToAppButton:hover {
+  background-color: #0051a2;
 }

@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
+import Navbar from '@/app/components/Navbar';
+import Link from 'next/link';
 import styles from './ct.module.css';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -10,19 +11,19 @@ const Page = () => {
     const [tournaments, setTournaments] = useState([]);
     const [selectedTournament, setSelectedTournament] = useState(null);
     const [matches, setMatches] = useState([]);
-    const [players, setPlayers] = useState([]);
-    const [playerMap, setPlayerMap] = useState({});
+    const [teams, setTeams] = useState([]);
+    const [teamMap, setTeamMap] = useState({});
     const [token, setToken] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
-        type: 'round_robin',
+        type: 'league',
         startDate: '',
         endDate: '',
-        selectedPlayers: []
+        selectedTeams: []
     });
 
-    // Get token
+    // Get token from localStorage
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         if (storedToken) setToken(storedToken);
@@ -37,7 +38,7 @@ const Page = () => {
                 const res = await fetch(`${API}/tournaments`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-
+                if (!res.ok) throw new Error('Failed to fetch tournaments');
                 const data = await res.json();
                 setTournaments(data);
             } catch (err) {
@@ -48,44 +49,66 @@ const Page = () => {
         fetchTournaments();
     }, [token]);
 
-    // Fetch users
+    // Fetch teams
     useEffect(() => {
         if (!token) return;
 
-        const fetchUsers = async () => {
+        const fetchTeams = async () => {
             try {
                 const res = await fetch(`${API}/users`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-
+                if (!res.ok) throw new Error('Failed to fetch teams');
                 const data = await res.json();
-                setPlayers(data);
+                setTeams(data);
 
                 const map = {};
-                data.forEach(p => map[p._id] = p.header);
-                setPlayerMap(map);
-
+                data.forEach(t => map[t._id] = t.header || t.name || "Team");
+                setTeamMap(map);
             } catch (err) {
-                console.error("Error fetching users:", err);
+                console.error("Error fetching teams:", err);
             }
         };
 
-        fetchUsers();
+        fetchTeams();
     }, [token]);
+
+    // Fetch matches for selected tournament
+    useEffect(() => {
+        const fetchMatches = async () => {
+            if (!selectedTournament) return;
+
+            try {
+                const res = await fetch(`${API}/tournaments/${selectedTournament._id}/matches`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Failed to fetch matches");
+                const data = await res.json();
+                setMatches(data);
+            } catch (err) {
+                console.error("Failed to fetch matches", err);
+            }
+        };
+        fetchMatches();
+    }, [selectedTournament?._id, token]);
 
     // Create tournament
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const { name, type, startDate, endDate, selectedTeams } = formData;
 
-        const { name, type, startDate, endDate, selectedPlayers } = formData;
+        if (!name || selectedTeams.length < 2) {
+            alert('Add a tournament name and select at least 2 teams');
+            return;
+        }
 
-        if (!name || selectedPlayers.length < 2) {
-            alert('Add a tournament name and select at least 2 players');
+        if (!startDate || !endDate) {
+            alert('Select start and end dates!');
             return;
         }
 
         if (new Date(endDate) < new Date(startDate)) {
-            alert('End date must be after start date');
+            alert('End date should be after or the same as start date!');
             return;
         }
 
@@ -101,61 +124,39 @@ const Page = () => {
                     type,
                     startDate,
                     endDate,
-                    players: selectedPlayers
+                    teams: selectedTeams
                 })
             });
 
-            const newTournament = await res.json();
+            if (!res.ok) {
+                const err = await res.text();
+                console.error("Server error:", err);
+                alert("Tournament creation failed");
+                return;
+            }
 
-            alert("Tournament Created");
+            const newTournament = await res.json();
+            alert('Tournament Created Successfully!');
+            setTournaments(prev => [...prev, newTournament]);
 
             setFormData({
                 name: '',
-                type: 'round_robin',
+                type: 'league',
                 startDate: '',
                 endDate: '',
-                selectedPlayers: []
+                selectedTeams: []
             });
-
-            // Refresh tournaments
-            setTournaments(prev => [...prev, newTournament]);
 
         } catch (err) {
             console.error("Error creating tournament:", err);
-        } finally {
-            console.log('Incoming POST /tournaments:', req.body);
         }
     };
 
-    // Fetch matches for selected tournament
-    useEffect(() => {
-        if (!selectedTournament || !token) return;
-
-        const fetchMatches = async () => {
-            try {
-                const res = await fetch(
-                    `${API}/tournaments/${selectedTournament._id}/matches`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                );
-
-                const data = await res.json();
-                setMatches(data);
-
-            } catch (err) {
-                console.error("Error fetching matches:", err);
-            }
-        };
-
-        fetchMatches();
-    }, [selectedTournament?._id, token]);
-
     return (
         <div className={styles.page}>
-            <h1 className={styles.h1}>Admin – Tournaments</h1>
+            <Navbar />
+            <h1 className={styles.h1}>Create Your Own Tournament</h1>
 
-            {/* CREATE FORM */}
             <form className={styles.form} onSubmit={handleSubmit}>
                 <input
                     className={styles.input}
@@ -184,30 +185,29 @@ const Page = () => {
                     value={formData.type}
                     onChange={e => setFormData({ ...formData, type: e.target.value })}
                 >
-                    <option value="round_robin">Round Robin</option>
+                    <option value="league">League</option>
                     <option value="knockout">Knockout</option>
                 </select>
 
-                <h3>Select Players</h3>
-
+                <h3 className={styles.h1}>Select Teams</h3>
                 <div className={styles.gridContainer}>
-                    {players.map(p => (
-                        <label key={p._id} className={styles.check}>
+                    {teams.map(t => (
+                        <label key={t._id} className={styles.check}>
                             <input
                                 type="checkbox"
-                                value={p._id}
-                                checked={formData.selectedPlayers.includes(p._id)}
+                                value={t._id}
+                                checked={formData.selectedTeams.includes(t._id)}
                                 onChange={e => {
                                     const val = e.target.value;
                                     setFormData(prev => ({
                                         ...prev,
-                                        selectedPlayers: prev.selectedPlayers.includes(val)
-                                            ? prev.selectedPlayers.filter(id => id !== val)
-                                            : [...prev.selectedPlayers, val]
+                                        selectedTeams: prev.selectedTeams.includes(val)
+                                            ? prev.selectedTeams.filter(id => id !== val)
+                                            : [...prev.selectedTeams, val]
                                     }));
                                 }}
                             />
-                            {p.header}
+                            {t.header || t.name}
                         </label>
                     ))}
                 </div>
@@ -217,22 +217,16 @@ const Page = () => {
                 </button>
             </form>
 
-            {/* LIST TOURNAMENTS */}
             <h2 className={styles.h2}>All Tournaments</h2>
-
+            {tournaments.length === 0 && <p>No tournaments yet.</p>}
             {tournaments.map(t => (
                 <div key={t._id} className={styles.tournamentWrapper}>
-
                     <div
                         className={styles.tournamentCard}
-                        onClick={() =>
-                            setSelectedTournament(
-                                selectedTournament?._id === t._id ? null : t
-                            )
-                        }
+                        onClick={() => setSelectedTournament(selectedTournament?._id === t._id ? null : t)}
                     >
                         <span>{t.name} ({t.type})</span>
-
+                        <p>Start: {new Date(t.startDate).toLocaleDateString()} | End: {new Date(t.endDate).toLocaleDateString()}</p>
                         <Link href={`schedule/${t._id}`}>
                             <p className={styles.vd_l}>View Details</p>
                         </Link>
@@ -240,37 +234,41 @@ const Page = () => {
 
                     {selectedTournament?._id === t._id && (
                         <div className={styles.MatchCard}>
-                            <div>
+                            <div className={styles.MatchCard_F}>
                                 <h3>{t.name}</h3>
                                 <p>Type: {t.type}</p>
                                 <p>Status: {t.status}</p>
+                                <p>Start: {new Date(t.startDate).toLocaleDateString()} | End: {new Date(t.endDate).toLocaleDateString()}</p>
                             </div>
 
-                            <div>
-                                <h4>Players</h4>
+                            <div className={styles.MatchCard_S}>
+                                <h4>Teams</h4>
                                 <ul>
-                                    {t.players.map(pid => (
-                                        <li key={pid}>{playerMap[pid] || pid}</li>
+                                    {t.teams?.map(id => (
+                                        <li key={id}>{teamMap[id] || id}</li>
                                     ))}
                                 </ul>
                             </div>
 
-                            <div>
+                            <div className={styles.MatchCard_T}>
                                 <h4>Matches</h4>
-                                {matches.length === 0 ? (
-                                    <p>No matches yet</p>
-                                ) : (
-                                    matches.slice(0, 3).map(m => (
-                                        <div key={m._id}>
-                                            <h4>
-                                                {m.playerA.header} vs {m.playerB.header}
-                                            </h4>
-                                            <p>Score: {m.scoreA} - {m.scoreB}</p>
-                                            <p>Status: {m.status}</p>
-                                        </div>
-                                    ))
-                                )}
+                                <div className={styles.MatchCard_D}>
+                                    {matches.length === 0 ? (
+                                        <p>No matches yet</p>
+                                    ) : (
+                                        matches.slice(0, 3).map(m => (
+                                            <div key={m._id} className={styles.matchCard}>
+                                                <h4>
+                                                    {teamMap[m.teamA] || m.teamA} vs {teamMap[m.teamB] || m.teamB}
+                                                </h4>
+                                                <p>Score: {m.scoreA ?? 0} - {m.scoreB ?? 0}</p>
+                                                <p>Status: {m.status || "Pending"}</p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
+
                         </div>
                     )}
                 </div>

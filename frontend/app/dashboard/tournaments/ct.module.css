@@ -84,6 +84,7 @@
 }
 
 .matchCard {
+    background-color: yellow;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -91,7 +92,6 @@
     padding: 0.8rem;
     border-radius: 8px;
     margin-bottom: 0.6rem;
-    background-color: #fff;
 }
 
 .player {
@@ -167,7 +167,15 @@
     border-radius: 10px;
     height: 200px;
 }
+.MatchCard_D{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
 
+}
 .MatchCard_T_child {
     display: flex;
     flex-direction: row;
