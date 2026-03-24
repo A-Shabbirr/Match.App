@@ -1,249 +1,307 @@
+/* ===== PAGE BACKGROUND ===== */
 .page {
-    padding: 2rem;
-    font-family: 'Arial', sans-serif;
-    background-color: #f2f2f2;
-    color: #111;
+    min-height: 100vh;
+    padding: 20px 40px;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0a0f2c, #1a1f5a, #0c1445);
+    color: white;
 }
 
-.h1,
-.h2,
-.h3 {
-    color: #1d1d1d;
+/* ===== HEADINGS ===== */
+.h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 25px;
+    color: #f5f5f5;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
 }
 
+.h2 {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #8ab4ff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== FORM ===== */
 .form {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    margin-bottom: 2rem;
+    gap: 15px;
+    max-width: 700px;
+    margin: 0 auto 40px auto;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
 }
 
 .input,
 .select {
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.2s;
 }
 
-.button {
-    padding: 0.6rem 1rem;
-    background-color: #ff0000;
-    color: white;
-    font-weight: bold;
-    border: none;
-    font-size: 18px;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+.input:focus,
+.select:focus {
+    background: rgba(138, 180, 255, 0.2);
+    box-shadow: 0 0 10px rgba(138, 180, 255, 0.5);
+}
 
-    border-radius: 6px;
+/* ===== SELECT BOX ===== */
+.select {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    appearance: none;
+    /* Remove default arrow */
+    background-image: linear-gradient(45deg, #1a3fff 25%, transparent 25%),
+        linear-gradient(-45deg, #1a3fff 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1a3fff 75%),
+        linear-gradient(-45deg, transparent 75%, #1a3fff 75%);
+    background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px),
+        calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px);
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
     cursor: pointer;
-    transition: 0.2s;
-    height: 50px;
+    transition: 0.3s;
+}
+
+.select:hover {
+    background: rgba(138, 180, 255, 0.2);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(138, 180, 255, 0.5);
+}
+
+/* ===== OPTION STYLING (limited by browsers) ===== */
+.select option {
+    background: rgba(10, 15, 44, 0.9);
+    /* Dark background */
+    color: white;
+    padding: 8px 12px;
+}
+
+/* Hover effect in some browsers */
+.select option:hover {
+    background: rgba(138, 180, 255, 0.3);
+    color: #fff;
+}
+
+/* ===== BUTTON ===== */
+.button {
+    padding: 12px 20px;
+    background: linear-gradient(90deg, #1a3fff, #0a74ff);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
 .button:hover {
-    background-color: #e60000;
+    background: linear-gradient(90deg, #0a74ff, #1a3fff);
+    transform: translateY(-2px);
+}
+
+/* ===== TEAMS GRID ===== */
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.check {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.teamItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    width: 100%;
+    transition: 0.2s;
+}
+
+.teamItem:hover {
+    background: rgba(138, 180, 255, 0.15);
+}
+
+.teamAvatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #8ab4ff;
+    box-shadow: 0 0 6px rgba(138, 180, 255, 0.6);
+}
+
+/* Checkbox hide */
+.check input[type="checkbox"] {
+    display: none;
+}
+
+/* Checked overlay */
+.check input[type="checkbox"]:checked+.teamItem {
+    border: 2px solid #1affd5;
+    box-shadow: 0 0 10px #1affd5;
+}
+
+/* ===== TOURNAMENT CARDS ===== */
+.tournamentWrapper {
+    margin-bottom: 20px;
 }
 
 .tournamentCard {
     display: flex;
-    flex-direction: row;
-    gap: 20px;
     justify-content: space-between;
     align-items: center;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background-color: white;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px 20px;
+    border-radius: 12px;
     cursor: pointer;
+    transition: 0.3s;
 }
 
 .tournamentCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: rgba(138, 180, 255, 0.1);
 }
 
-.MatchCard {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    justify-content: flex-start;
-    align-items: flex-start;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background-color: white;
-    transition: transform 0.2s, box-shadow 0.2s;
+.tournamentName {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #f5f5f5;
 }
 
-.MatchCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.matchCard {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border: 1px solid #ddd;
-    padding: 0.8rem;
-    border-radius: 8px;
-    margin-bottom: 0.6rem;
-    background-color: #fff;
-}
-
-.player {
-    font-weight: bold;
-    color: #111;
-}
-
-.score {
-    color: #555;
-}
-
-.round,
-.status,
-.winner {
+.tournamentDates {
     font-size: 0.9rem;
-    color: #333;
+    color: #ccc;
 }
 
-.selectedEvent {
-    margin-top: 2rem;
-    padding: 1rem;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    background-color: #fff;
+.vd_l {
+    font-weight: 600;
+    color: #1a74ff;
+    text-decoration: underline;
 }
 
-.list {
-    list-style: none;
+/* ===== MATCH CARDS ===== */
+.MatchCard {
+    margin-top: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    padding: 0;
-}
-
-.listItem {
-    margin-bottom: 0.4rem;
+    gap: 15px;
 }
 
 .MatchCard_F {
-    padding: 10px;
-    gap: 10px;
-    border: 1px solid silver;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    width: 20%;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
-    height: 200px;
-}
-
-.MatchCard_S {
-    padding: 10px;
-    gap: 10px;
-    border: 1px solid silver;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    border-radius: 10px;
-    min-width: 20%;
-    height: 200px;
+    padding: 12px;
 }
 
 .MatchCard_T {
     display: flex;
     flex-direction: column;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.MatchCard_S {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    min-width: 55%;
-    padding: 10px;
-    gap: 10px;
-    border: 1px solid silver;
-    border-radius: 10px;
-    height: 200px;
-}
-
-.MatchCard_T_child {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
-    padding: 10px;
-    gap: 10px;
-    border-radius: 10px;
-    height: 120px;
-}
-
-.MatchCard_T_C {
-    /* height: 100%; */
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(3, 1fr);
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
     gap: 10px;
 }
 
-.check {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 5px;
-    height: 30px;
-}
-
-.vd_l {
-    background-color: white;
-    color: black;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
-    padding: 10px;
-}
-
-.vd_l:hover {
-    color: white;
-    background-color: rgb(228, 6, 172);
-}
-
-.vd {
-    width: 100%;
-}
-
-.vd:hover {
-    color: #ff0000;
-}
-
-/* In your CSS module */
-.gridContainer {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    /* 5 columns */
-    gap: 10px;
-    /* space between items */
-}
-
-.check {
-    display: flex;
-    align-items: center;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-.MatchCard_D{
+.MatchCard_S_UL {
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    padding: 12px;
     width: 100%;
+    /* background: red; */
+    gap: 10px;
+}
+
+.MatchCard_D {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+
+}
+
+/* Teams in match card */
+.matchCard {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 10px;
+    width: 100%;
+    background: rgba(138, 180, 255, 0.05);
+}
+
+.parent_Up {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 20px;
+}
 
+.Up {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.vsText {
+    font-weight: 700;
+    color: #1a74ff;
+}
+
+/* Score and status */
+.score {
+    font-weight: 600;
+    color: #1affd5;
+}
+
+.status {
+    font-size: 0.85rem;
+    color: #ccc;
 }

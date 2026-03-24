@@ -1,144 +1,223 @@
-/* ===== PAGE WRAPPER ===== */
+/* ===== PAGE BACKGROUND ===== */
 .page {
+    min-height: 100vh;
     padding: 20px;
-    margin: 0 auto;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    color: #333;
-    width: 100%;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0a0f2c, #1a1f5a, #0c1445);
+    color: white;
 }
 
-/* ===== HEADER ===== */
-.header {
+/* ===== TITLE ===== */
+.title {
     text-align: center;
-    margin-bottom: 30px;
-}
-
-.header h1 {
     font-size: 28px;
-    color: #37003c;
-    /* PL dark purple */
-    margin-bottom: 6px;
+    margin: 20px 0px;
 }
 
-.header p {
-    font-size: 16px;
-    color: #666;
-}
-
-/* ===== MATCH CARD ===== */
-
-.matchCard {
-    background-color: #08000027;
+/* ===== SCHEDULE ===== */
+.scheduleContainer {
+    max-width: 900px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 12px;
-    gap: 10px;
-    padding: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    margin-bottom: 16px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    height: 200px;
-    width: 300px;
 }
 
-.matchCard:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+/* MATCHDAY TITLE */
+.matchdayTitle {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #8ab4ff;
 }
 
-.matchCard_parent {
-    width: 100%;
+/* ===== FIXTURE ROW ===== */
+.fixtureRow {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    width:100%;
-}
-
-.matchPlayers {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.matchPlayers strong {
-    color: #37003c;
-}
-
-.matchScore {
-    font-size: 14px;
-    margin-bottom: 6px;
-}
-
-.matchRound {
-    font-size: 13px;
-    font-weight: 500;
-    color: #555;
-    margin-bottom: 6px;
-}
-
-.matchStatus {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    color: white;
-    margin-bottom: 6px;
-}
-
-/* STATUS COLORS */
-.statusUpcoming {
-    background-color: #ff9800;
-    /* orange */
-}
-
-.statusCompleted {
-    background-color: #4caf50;
-    /* green */
-}
-
-.statusOngoing {
-    background-color: #2196f3;
-    /* blue */
-}
-
-.winner {
-    font-size: 14px;
-    font-weight: 600;
-    color: #4caf50;
-}
-
-.standingsCard {
-    margin-top: 30px;
-    padding: 20px;
-    background: #121212;
+    grid-template-columns: 1fr auto 1fr auto;
+    align-items: center;
+    padding: 14px 18px;
     border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    transition: 0.2s;
+    margin: 5px 0px;
+}
+
+.fixtureRow:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== TEAM BLOCK ===== */
+.teamBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+/* LEFT TEAM ALIGN RIGHT */
+.teamBlock:first-child {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+/* RIGHT TEAM ALIGN LEFT */
+.teamBlock:nth-child(3) {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+}
+
+.teamLogo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: white;
+    padding: 2px;
+    box-shadow: 0 0 6px rgba(138, 180, 255, 0.6);
+}
+
+/* ===== SCORE ===== */
+.scoreBox {
+    background: #09123a;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* ===== STATUS ===== */
+.matchMeta {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-left: 10px;
+}
+
+/* ===== STANDINGS ===== */
+.standingsCard {
+    margin-top: 40px;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    /* Keep original dark background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .standingsTitle {
-    margin-bottom: 10px;
-    color: #ec1ad0;
+    margin-bottom: 15px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #8ab4ff;
 }
 
 .standingsTable {
     width: 100%;
     border-collapse: collapse;
     text-align: center;
+    font-family: 'Inter', sans-serif;
+}
+
+.standingsTable th,
+.standingsTable td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    vertical-align: middle;
 }
 
 .standingsTable th {
-    padding: 10px;
-    background: #1f1f1f;
+    font-weight: 600;
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
-.standingsTable td {
-    padding: 8px;
-    border-bottom: 1px solid #2a2a2a;
+/* Team cell with logo */
+.teamCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
 }
 
-.points {
-    font-weight: bold;
-    color: #00ffcc;
+.tableLogo {
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #fff;
+}
+
+/* Hover effect for rows */
+.standingsTable tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+/* ===== SEARCH BOX ===== */
+.searchBox {
+    max-width: 500px;
+    margin: 0 auto 30px auto;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.scoreInput {
+    width: 50px;
+    text-align: center;
+    border-radius: 4px;
+    border: none;
+    padding: 4px;
+    margin: 0 4px;
+}
+
+.editButton,
+.saveButton {
+    margin-left: 8px;
+    padding: 4px 8px;
+    background-color: #4f83ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.editButton:hover,
+.saveButton:hover {
+    background-color: #6aa0ff;
+}
+
+.statusSelect {
+    margin-left: 6px;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+/* ===== Responsive adjustments ===== */
+@media (max-width: 768px) {
+
+    .standingsTable th,
+    .standingsTable td {
+        padding: 6px 4px;
+        font-size: 0.9rem;
+    }
+
+    .tableLogo,
+    .teamLogo {
+        width: 24px;
+        height: 24px;
+    }
+
+    .fixtureRow {
+        grid-template-columns: 1fr auto 1fr;
+    }
 }

@@ -21,7 +21,7 @@ const TournamentCard = ({ tournament, linkdetail = '' }) => {
                     Dates: {formatDate(tournament.startDate)} - {formatDate(tournament.endDate)}
                 </p>
                 <p className={styles.players}>
-                    Players: {tournament.players?.length || 0}
+                    No. of Teams: {tournament.players?.length || 0}
                 </p>
             </div>
         </Link>

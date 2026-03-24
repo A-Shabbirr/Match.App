@@ -15,7 +15,6 @@ const Page = () => {
     const [search, setSearch] = useState('');
     const [loadingTournaments, setLoadingTournaments] = useState(true);
     const [loadingUsers, setLoadingUsers] = useState(true);
-
     const [token, setToken] = useState(null);
 
     // Get token from localStorage
@@ -86,6 +85,13 @@ const Page = () => {
         (u.header || u.name)?.toLowerCase().includes(search.toLowerCase())
     );
 
+    // Attach players to tournaments
+    const tournamentsWithPlayers = filteredTournaments.map(t => {
+        // Match users to tournament teams
+        const players = users.filter(u => t.teams?.includes(u._id));
+        return { ...t, players };
+    });
+
     return (
         <div className={styles.page}>
             <Navbar />
@@ -106,6 +112,8 @@ const Page = () => {
                     className={styles.searchInput}
                 />
             </div>
+
+            {/* Users Section */}
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <h2 className={styles.sectionTitle}>Users</h2>
@@ -123,6 +131,7 @@ const Page = () => {
                     </div>
                 )}
             </section>
+
             {/* Tournaments Section */}
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
@@ -136,9 +145,13 @@ const Page = () => {
                     <p>Loading tournaments...</p>
                 ) : (
                     <div className={styles.grid}>
-                        {filteredTournaments.length > 0 ? (
-                            filteredTournaments.map(t => (
-                                <TournamentCard key={t._id} tournament={t} linkdetail="dashboard/schedule" />
+                        {tournamentsWithPlayers.length > 0 ? (
+                            tournamentsWithPlayers.map(t => (
+                                <TournamentCard
+                                    key={t._id}
+                                    tournament={t}
+                                    linkdetail="dashboard/schedule"
+                                />
                             ))
                         ) : (
                             <p>No tournaments found.</p>
@@ -146,8 +159,6 @@ const Page = () => {
                     </div>
                 )}
             </section>
-
-
         </div>
     );
 };

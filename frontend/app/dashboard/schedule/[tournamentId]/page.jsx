@@ -8,6 +8,10 @@ import Navbar from '@/app/components/Navbar';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
+// ✅ GLOBAL DEFAULT IMAGE (FIXES 404)
+const DEFAULT_TEAM =
+    "https://res.cloudinary.com/dyi3wxmy3/image/upload/v1773435973/T_logo_iwqy4i.png";
+
 const DashboardSchedulePage = () => {
     const { tournamentId } = useParams();
     const [tournament, setTournament] = useState(null);
@@ -29,24 +33,31 @@ const DashboardSchedulePage = () => {
             try {
                 setLoading(true);
 
-                // Fetch tournament
+                // TOURNAMENT
                 const tournamentRes = await fetch(`${API}/tournaments/${tournamentId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                if (!tournamentRes.ok) throw new Error("Failed to fetch tournament");
                 const tournamentData = await tournamentRes.json();
                 setTournament(tournamentData);
 
-                // Fetch teams/users for mapping
+                // USERS → TEAM MAP
                 const usersRes = await fetch(`${API}/users`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const usersData = await usersRes.json();
+
                 const map = {};
-                usersData.forEach(u => map[u._id] = u.header || u.name || "Team");
+                usersData.forEach(u => {
+                    map[u._id] = {
+                        name: u.header || u.name || "Team",
+                        avatar:
+                            (u.profilePicture || u.avatar || u.image || "").trim() ||
+                            DEFAULT_TEAM
+                    };
+                });
                 setTeamMap(map);
 
-                // Fetch matches
+                // MATCHES
                 const matchesRes = await fetch(`${API}/tournaments/${tournamentId}/matches`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -63,7 +74,6 @@ const DashboardSchedulePage = () => {
         fetchData();
     }, [token, tournamentId]);
 
-    // Calculate standings (example for league)
     const calculateStandings = () => {
         if (!tournament || !matches) return [];
 
@@ -75,88 +85,135 @@ const DashboardSchedulePage = () => {
         matches.forEach(match => {
             if (match.status !== 'Completed') return;
 
-            const teamAId = match.teamA;
-            const teamBId = match.teamB;
+            const a = match.teamA;
+            const b = match.teamB;
 
-            table[teamAId].played++;
-            table[teamBId].played++;
+            table[a].played++;
+            table[b].played++;
 
             if (match.scoreA === match.scoreB) {
-                table[teamAId].draws++;
-                table[teamBId].draws++;
-                table[teamAId].points++;
-                table[teamBId].points++;
-                return;
-            }
-
-            if (match.winner === teamAId) {
-                table[teamAId].wins++;
-                table[teamAId].points += 3;
-                table[teamBId].losses++;
-            } else if (match.winner === teamBId) {
-                table[teamBId].wins++;
-                table[teamBId].points += 3;
-                table[teamAId].losses++;
+                table[a].draws++;
+                table[b].draws++;
+                table[a].points++;
+                table[b].points++;
+            } else if (match.winner === a) {
+                table[a].wins++;
+                table[a].points += 3;
+                table[b].losses++;
+            } else {
+                table[b].wins++;
+                table[b].points += 3;
+                table[a].losses++;
             }
         });
 
         return Object.values(table).sort((a, b) => b.points - a.points || b.wins - a.wins);
     };
 
+    // GROUP MATCHES
+    const groupedMatches = matches.reduce((acc, match) => {
+        const key = match.round || "Matchday 1";
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(match);
+        return acc;
+    }, {});
+
     if (loading) return <Spinner />;
 
     return (
         <div className={styles.page}>
             <Navbar />
+
             {!tournament ? (
                 <p>Failed to load tournament.</p>
             ) : (
                 <>
-                    <h1 style={{ marginBottom: '10px' }}>
-                        Tournament: {tournament.name}
+                    <h1 className={styles.title}>
+                        {tournament.name} Schedule
                     </h1>
 
-                    <div className={styles.matchCard_parent}>
-                        {matches.length === 0 ? (
-                            <p>No matches yet</p>
-                        ) : (
-                            matches.map(match => (
-                                <div key={match._id} className={styles.matchCard}>
-                                    <p className={styles.matchPlayers}>
-                                        <strong>{teamMap[match.teamA] || match.teamA}</strong> vs{' '}
-                                        <strong>{teamMap[match.teamB] || match.teamB}</strong>
-                                    </p>
-                                    <p>Score: {match.scoreA ?? 0} - {match.scoreB ?? 0}</p>
-                                    <p>Status: {match.status || "Pending"}</p>
-                                    <p>Winner: {match.winner ? teamMap[match.winner] : 'TBD'}</p>
-                                </div>
-                            ))
-                        )}
+                    {/* FIXTURES */}
+                    <div className={styles.scheduleContainer}>
+                        {Object.entries(groupedMatches).map(([round, games]) => (
+                            <div key={round}>
+                                <h3 className={styles.matchdayTitle}>{round}</h3>
+
+                                {games.map(match => (
+                                    <div className={styles.fixtureRow} key={match._id}>
+
+                                        {/* LEFT TEAM */}
+                                        <div className={styles.teamBlock}>
+                                            <img
+                                                src={teamMap[match.teamA]?.avatar || DEFAULT_TEAM}
+                                                onError={(e) => (e.target.src = DEFAULT_TEAM)}
+                                                className={styles.teamLogo}
+                                            />
+                                            <span>
+                                                {teamMap[match.teamA]?.name || "Team A"}
+                                            </span>
+                                        </div>
+
+                                        {/* SCORE */}
+                                        <div className={styles.scoreBox}>
+                                            {match.status === "Completed"
+                                                ? `${match.scoreA ?? 0} - ${match.scoreB ?? 0}`
+                                                : "vs"}
+                                        </div>
+
+                                        {/* RIGHT TEAM */}
+                                        <div className={styles.teamBlock}>
+                                            <span>
+                                                {teamMap[match.teamB]?.name || "Team B"}
+                                            </span>
+                                            <img
+                                                src={teamMap[match.teamB]?.avatar || DEFAULT_TEAM}
+                                                onError={(e) => (e.target.src = DEFAULT_TEAM)}
+                                                className={styles.teamLogo}
+                                            />
+                                        </div>
+
+                                        {/* STATUS */}
+                                        <div className={styles.matchMeta}>
+                                            {match.status || "Upcoming"}
+                                        </div>
+
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
                     </div>
 
-                    {/* Standings */}
+                    {/* STANDINGS */}
                     <div className={styles.standingsCard}>
                         <h2 className={styles.standingsTitle}>Standings</h2>
+
                         <table className={styles.standingsTable}>
                             <thead>
                                 <tr>
-                                    <th className={styles.points}>Team</th>
-                                    <th className={styles.points}>P</th>
-                                    <th className={styles.points}>W</th>
-                                    <th className={styles.points}>D</th>
-                                    <th className={styles.points}>L</th>
-                                    <th className={styles.points}>Pts</th>
+                                    <th>Team</th>
+                                    <th>P</th>
+                                    <th>W</th>
+                                    <th>D</th>
+                                    <th>L</th>
+                                    <th>Pts</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {calculateStandings().map((row, index) => (
                                     <tr key={row.teamId}>
-                                        <td className={styles.points}>{index + 1}. {teamMap[row.teamId]}</td>
-                                        <td className={styles.points}>{row.played}</td>
-                                        <td className={styles.points}>{row.wins}</td>
-                                        <td className={styles.points}>{row.draws}</td>
-                                        <td className={styles.points}>{row.losses}</td>
-                                        <td className={styles.points}>{row.points}</td>
+                                        <td className={styles.teamCell}>
+                                            <img
+                                                src={teamMap[row.teamId]?.avatar || DEFAULT_TEAM}
+                                                onError={(e) => (e.target.src = DEFAULT_TEAM)}
+                                                className={styles.tableLogo}
+                                            />
+                                            {index + 1}. {teamMap[row.teamId]?.name || "Team"}
+                                        </td>
+                                        <td>{row.played}</td>
+                                        <td>{row.wins}</td>
+                                        <td>{row.draws}</td>
+                                        <td>{row.losses}</td>
+                                        <td>{row.points}</td>
                                     </tr>
                                 ))}
                             </tbody>

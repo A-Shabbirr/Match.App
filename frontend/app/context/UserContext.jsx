@@ -7,41 +7,61 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     const fetchUser = async () => {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
 
+        // ✅ NO TOKEN / USER → GUEST MODE (NO CRASH)
         if (!token || !userId) {
             setUser(null);
-            router.replace("/login");
-            return;
+            setLoading(false);
+            return; // ❗ removed forced redirect
         }
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
 
-            if (!res.ok) throw new Error("Failed to fetch user");
+            // ✅ HANDLE INVALID TOKEN / USER NOT FOUND
+            if (!res.ok) {
+                console.warn("User not found or token invalid");
+
+                // clear bad auth
+                localStorage.removeItem("token");
+                localStorage.removeItem("userId");
+
+                setUser(null);
+                setLoading(false);
+
+                return; // ❗ no crash
+            }
 
             const data = await res.json();
             setUser(data);
+
         } catch (err) {
-            console.error("Error fetching user:", err);
+            // ✅ NETWORK FAIL SAFE
+            console.warn("Fetch user failed (network/server issue)");
+
             setUser(null);
-            router.replace("/login"); // redirect if fetch fails
+        } finally {
+            setLoading(false);
         }
     };
 
-    // fetch user on mount
     useEffect(() => {
         fetchUser();
     }, []);
 
     return (
-        <UserContext.Provider value={{ user, setUser, fetchUser }}>
+        <UserContext.Provider value={{ user, setUser, fetchUser, loading }}>
             {children}
         </UserContext.Provider>
     );
