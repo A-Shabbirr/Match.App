@@ -51,6 +51,10 @@ exports.updateMatch = async (req, res) => {
         res.json(match);
     } catch (err) {
         console.error("Error updating match:", err);
-        res.status(500).json({ message: "Server error updating match" });
+
+        res.status(500).json({
+            message: err.message,
+            error: err
+        });
     }
 };
